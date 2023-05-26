@@ -118,6 +118,7 @@ create_cursor.execute("USE test_database")
 # add user function
 def add_user(user_id, balance, fname, mname, lname):
     sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
+    print(sql_statement)
     create_cursor.execute(sql_statement)
     mariadb_connection.commit()
 
@@ -134,7 +135,7 @@ def add_group(input):
     mariadb_connection.commit()
 
 
-add_user("12345", "0", "aj", "c", "quinlat")
+add_user("12345", "0", "'aj'", "'c'", "'quinlat'")
 
 create_cursor.execute("SELECT * FROM user")
 for x in create_cursor:
