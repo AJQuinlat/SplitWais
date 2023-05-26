@@ -3,7 +3,7 @@ import customtkinter
 import datetime as dt
 import mysql.connector as mariadb
 
-# backend
+# backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
 mariadb_connection = mariadb.connect(user="root", password="jovelyn", host="localhost", port="3306")
@@ -11,13 +11,14 @@ mariadb_connection = mariadb.connect(user="root", password="jovelyn", host="loca
 create_cursor = mariadb_connection.cursor()
 
 
-### one time queries for initial state of database
+### one time queries for initial state of database -------------------------------------------
 
 # create_cursor.execute("CREATE DATABASE test_database")
 # create_cursor.execute("SHOW DATABASES")
 
 create_cursor.execute("USE test_database")
 
+### DDL STATEMENTS FOR CREATING TABLES -------------------------------------------------------
 # create_cursor.execute("create table user(user_id int(5), balance decimal(8, 2), first_name varchar(20), middle_name varchar(20), last_name varchar(20), primary key(user_id));")
 # create_cursor.execute("create table `group`(group_id int(5), group_name varchar(20), number_of_members int(4), balance decimal(8, 2), primary key(group_id));")
 # create_cursor.execute('''
@@ -49,6 +50,7 @@ create_cursor.execute("USE test_database")
 # for x in create_cursor:
 #     print(x)
 
+### inserting initial state
 # sql_statement = '''
 #     INSERT INTO user VALUES 
 #     (11111, 500.00, 'Maria', 'Maganda', 'Makiling'),
@@ -76,6 +78,7 @@ create_cursor.execute("USE test_database")
 #     (10204, "Talon", 2, 200.00),
 #     (10201, "Helix Corporation", 2, 0);
 # ''')
+# mariadb_connection.commit()
 
 # create_cursor.execute("SELECT * FROM `group`")
 # for x in create_cursor:
@@ -115,23 +118,12 @@ create_cursor.execute("USE test_database")
 # ''')
 # mariadb_connection.commit()
 
-### reports to be generated
+### FEATURES ------------------------------------------------------------------------
 # add user function
 def add_user(user_id, balance, fname, mname, lname):
     sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
-    print(sql_statement)
     create_cursor.execute(sql_statement)
     mariadb_connection.commit()
-
-#         transaction_id int(5),
-#         transaction_name varchar(20),
-#         loaner int(5),
-#         loanee int(5),
-#         amount decimal(8, 2),
-#         transaction_date date,
-#         payment_date date,
-#         group_id int(5),
-#         user_id int(5),
 
 # add transaction function
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
@@ -151,10 +143,81 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
     mariadb_connection.commit()
     
 # add group function
-def add_group(input):
-    sql_statement = "INSERT INTO `group` VALUES(%s, %s, %s, %s)"
+def add_group(gid, gname, mem_no, balance):
+    sql_statement = "INSERT INTO `group` VALUES(" + gid + "," + gname + ","+ mem_no + "," + balance + ");"
+    print(sql_statement)
     create_cursor.execute(sql_statement)
     mariadb_connection.commit()
+
+# delete user by id
+def del_user(uid):
+    sqlstatement = "DELETE FROM user WHERE user_id = " + uid
+    create_cursor.execute(sqlstatement)
+    mariadb_connection.commit()
+
+# delete transaction by id
+def del_transaction(tid):
+    sqlstatement = "DELETE FROM transaction WHERE transaction_id = " + tid
+    create_cursor.execute(sqlstatement)
+    mariadb_connection.commit()
+
+# delete all settled transactions
+def clear_transaction():
+    create_cursor.execute("DELETE FROM transaction WHERE payment_date IS NOT NULL;")
+    mariadb_connection.commit()
+
+# delete group by id
+def del_group(gid):
+    sqlstatement = "DELETE FROM `group` WHERE group_id = " + gid
+
+# search a transaction by id
+def search_transaction_id(tid):
+    sqlstatement = "SELECT * FROM transaction WHERE transaction_id=" + tid
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+
+# search a transaction by name
+def search_transaction_name(tname):
+    sqlstatement = "SELECT * FROM transaction WHERE transaction_name LIKE '%" + tname + "%'"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+
+# search a user by id
+def search_user_id(uid):
+    sqlstatement = "SELECT * FROM user WHERE user_id=" + uid
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+
+# search a user by name
+def search_user_name(uname):
+    sqlstatement = "SELECT * FROM user WHERE CONCAT(first_name, middle_name, last_name) LIKE '%" + uname + "%'"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+
+# search a group by id
+def search_grp_id(gid):
+    sqlstatement = "SELECT * FROM `group` WHERE group_id=" + gid
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+
+# search a group by name
+def search_grp_name(gname):
+    sqlstatement = "SELECT * FROM `group` WHERE group_name LIKE '%" + gname + "%'"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+
+
+
+# update user to follow
+
+
+### TEST CASES
 
 # add user testcase
 # add_user("12345", "0", "'aj'", "'c'", "'quinlat'")
@@ -162,12 +225,103 @@ def add_group(input):
 # add transaction testcase
 # add_transaction("6", "asdf", "10203", "11111", "500.00", "01/10/2023", "NULL", "11111")
 
-create_cursor.execute("SELECT * FROM transaction")
-for x in create_cursor:
-    print(x)
+# add group testcase
+# add_group("12345", "'New_Group'", "0", "0")
+
+# test case for delete user by id
+# del_user("12345")
+
+# test case for delete transaction by id
+# del_transaction("6")
+
+# test case for deleting settled transactions (must delete transaction #5)
+# clear_transaction()
+
+# test case for deleting group by id
+# del_group("12345")
+
+# test case for searching transaction by id
+# search_transaction_id("1")
+# test case for searching transaction by name
+# search_transaction_name("ol")
+
+# test case for searching user by id
+# search_user_id("99999")
+# test case for searchin user by name
+# search_user_name("jack")
+
+# test case for searching group by id
+# search_grp_id("10203")
+# test case for searching group by name
+# search_grp_name("on")
+
+### TABLE CHECKER 
+# create_cursor.execute("SELECT * FROM `group`")
+# for x in create_cursor:
+#     print(x)
 
 
-# frontend
+
+##### REPORTS TO BE GENERATED
+
+
+# view expenses from a certain month
+def view_month(month):
+    sqlstatement = "SELECT * FROM transaction WHERE MONTH(transaction_date) = " + month
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+# view_month("1")
+
+# # view all expenses made with a friend
+# def view_friend(friend):
+#     sqlstatement = "SELECT * FROM transaction WHERE user_id = " + friend + "loaner ="
+#     create_cursor.execute(sqlstatement)
+#     for x in create_cursor:
+#         print(x)
+# view_friend("11111")
+
+# # view all expenses made with a group
+# def view_group(group):
+#     sqlstatement = "SELECT * FROM transaction where Group_id =  " + group
+#     create_cursor.execute(sqlstatement)
+#     for x in create_cursor:
+#         print(x)
+
+# view current balance from all expenses
+def curr_balance():
+    sqlstatement = "select balance from USER where user_id = 10000"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+# curr_balance()
+
+# view all friends with outstanding balance;
+def view_friend_outbalance():
+    sqlstatement = "select * from USER where Balance > 0 and user_id != 10000"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+# view_friend_outbalance()
+
+# view all groups
+def view_groups():
+    sqlstatement = "SELECT * FROM `group`"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+# view_groups()
+
+def view_group_outbalance():
+    sqlstatement = "SELECT * FROM `group` WHERE balance > 0"
+    create_cursor.execute(sqlstatement)
+    for x in create_cursor:
+        print(x)
+# view_group_outbalance()
+
+
+
+# frontend ---------------------------------------------------------------------------
 def handleSubmit():
     try:
         submissionText.configure(text="Submission Success", text_color="white")
