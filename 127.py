@@ -1,5 +1,6 @@
 import tkinter
 import customtkinter
+import datetime as dt
 import mysql.connector as mariadb
 
 # backend
@@ -122,22 +123,46 @@ def add_user(user_id, balance, fname, mname, lname):
     create_cursor.execute(sql_statement)
     mariadb_connection.commit()
 
+#         transaction_id int(5),
+#         transaction_name varchar(20),
+#         loaner int(5),
+#         loanee int(5),
+#         amount decimal(8, 2),
+#         transaction_date date,
+#         payment_date date,
+#         group_id int(5),
+#         user_id int(5),
+
 # add transaction function
-def add_transaction(input):
-    sql_statement = "INSERT INTO transaction VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    create_cursor.execute(sql_statement, input)
+def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
+    curr = dt.datetime.now()
+    tdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
+    if (pdate!="NULL"):
+        if (gid != "NULL"):
+            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), "+ gid + ", " + "NULL)"
+        else:
+            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), NULL, " + uid + ")"
+    else:
+        if (gid != "NULL"):
+            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, "+ gid + ", " + "NULL" + ")"
+        else:
+            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, NULL, " + uid + ")"
+    create_cursor.execute(sql_statement)
     mariadb_connection.commit()
     
 # add group function
 def add_group(input):
     sql_statement = "INSERT INTO `group` VALUES(%s, %s, %s, %s)"
-    create_cursor.execute(sql_statement, input)
+    create_cursor.execute(sql_statement)
     mariadb_connection.commit()
 
+# add user testcase
+# add_user("12345", "0", "'aj'", "'c'", "'quinlat'")
 
-add_user("12345", "0", "'aj'", "'c'", "'quinlat'")
+# add transaction testcase
+# add_transaction("6", "asdf", "10203", "11111", "500.00", "01/10/2023", "NULL", "11111")
 
-create_cursor.execute("SELECT * FROM user")
+create_cursor.execute("SELECT * FROM transaction")
 for x in create_cursor:
     print(x)
 
