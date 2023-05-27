@@ -3,6 +3,18 @@ import customtkinter
 import datetime as dt
 import mysql.connector as mariadb
 
+# makes a table window with inputs list from select and window title
+def table(lst, title):
+    top = customtkinter.CTkToplevel()
+    top.title(title)
+
+    for i in range(len(lst)):
+        for j in range(len(lst[0])): 
+            e = customtkinter.CTkLabel(top, text=lst[i][j])
+            e.grid(row=i, column=j, padx=20, pady=10)
+
+    top.grab_set()
+
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
@@ -121,9 +133,18 @@ create_cursor.execute("USE test_database")
 ### FEATURES ------------------------------------------------------------------------
 # add user function
 def add_user(user_id, balance, fname, mname, lname):
+    fname="'"+fname+"'"
+    mname="'"+mname+"'"
+    lname="'"+lname+"'"
     sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
     create_cursor.execute(sql_statement)
     mariadb_connection.commit()
+    input1.delete(0,"end")
+    input2.delete(0,"end")
+    input3.delete(0,"end")
+    input4.delete(0,"end")
+    input5.delete(0,"end")
+
 
 # add transaction function
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
@@ -219,9 +240,6 @@ def search_grp_name(gname):
 
 ### TEST CASES
 
-# add user testcase
-# add_user("12345", "0", "'aj'", "'c'", "'quinlat'")
-
 # add transaction testcase
 # add_transaction("6", "asdf", "10203", "11111", "500.00", "01/10/2023", "NULL", "11111")
 
@@ -308,9 +326,14 @@ def view_friend_outbalance():
 def view_groups():
     sqlstatement = "SELECT * FROM `group`"
     create_cursor.execute(sqlstatement)
+    
+    lst = [("Group ID", "Group Name", "Number of Members", "Balance")] + create_cursor.fetchall()
+    table(lst, "Groups")
+
     for x in create_cursor:
         print(x)
-# view_groups()
+
+    
 
 def view_group_outbalance():
     sqlstatement = "SELECT * FROM `group` WHERE balance > 0"
@@ -324,10 +347,11 @@ def view_group_outbalance():
 # frontend ---------------------------------------------------------------------------
 def handleSubmit():
     try:
+        view_groups()
         submissionText.configure(text="Submission Success", text_color="white")
     except:
         submissionText.configure(text="Submission Fail", text_color="red")
-    friend.delete(0, 'end')
+
 
 
 
@@ -345,18 +369,68 @@ app.title("Expense Tracker")
 title = customtkinter.CTkLabel(app, text="Hello World!")
 title.pack(padx=10, pady=10)
 
-# making a string var for input
-friendVar = tkinter.StringVar()
-friend = customtkinter.CTkEntry(app, width=350, height=40, textvariable=friendVar)
-friend.pack()
+tabview = customtkinter.CTkTabview(master=app)
+tabview.pack(padx=20, pady=20)
 
-# making a button that calls a function
-button = customtkinter.CTkButton(app, text="Submit", command=handleSubmit)
-button.pack(padx=10, pady=10)
+tabview.add("Manage Reports")  # add tab at the end
+tabview.add("View Information")  # add tab at the end
+tabview.set("Manage Reports")  # set currently visible tab
+tab1 = tabview.tab("Manage Reports")
+tab2 = tabview.tab("View Information") 
 
-submissionText = customtkinter.CTkLabel(app, text="")
+def add1():
+    add = customtkinter.CTkToplevel()
+    add.grab_set()
+
+    global input1
+    global input2
+    global input3
+    global input4
+    global input5
+
+    lbl1 = customtkinter.CTkLabel(add, text="User ID")
+    input1 = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl1.pack()
+    input1.pack()
+
+    lbl2 = customtkinter.CTkLabel(add, text="Balance")
+    input2 = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl2.pack()
+    input2.pack()
+
+    lbl3 = customtkinter.CTkLabel(add, text="First Name")
+    input3 = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl3.pack()
+    input3.pack()
+
+    lbl4 = customtkinter.CTkLabel(add, text="Middle Name")
+    input4 = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl4.pack()
+    input4.pack()
+
+    lbl5 = customtkinter.CTkLabel(add, text="Last Name")
+    input5 = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl5.pack()
+    input5.pack()
+
+    button = customtkinter.CTkButton(add, text="Add User", command=lambda: add_user(input1.get(), input2.get(), input3.get(), input4.get(), input5.get()))
+    button.pack(padx=10, pady=10)
+
+button1 = customtkinter.CTkButton(tab1, text="Add User", command=add1)
+button1.pack(padx=10, pady=10)
+button2 = customtkinter.CTkButton(tab1, text="Add Transaction", command=handleSubmit)
+button2.pack(padx=10, pady=10)
+button3 = customtkinter.CTkButton(tab1, text="Add Group", command=handleSubmit)
+button3.pack(padx=10, pady=10)
+
+
+
+submissionText = customtkinter.CTkLabel(tab1, text="")
 submissionText.pack()
 
+
+button = customtkinter.CTkButton(tab2, text="Show Groups", command=handleSubmit)
+button.pack(padx=10, pady=10)
 
 # runs the app
 app.mainloop()
