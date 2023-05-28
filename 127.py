@@ -104,10 +104,6 @@ cursor.execute('''
 ''')
 mariadb_connection.commit()
 
-# cursor.execute("SELECT * FROM transaction")
-# for x in cursor:
-#     print(x)
-
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
     insert into has values
@@ -234,47 +230,6 @@ def search_grp_name(gname):
 # update user to follow
 
 
-### TEST CASES
-
-# add transaction testcase
-# add_transaction("6", "asdf", "10203", "11111", "500.00", "01/10/2023", "NULL", "11111")
-
-# add group testcase
-# add_group("12345", "'New_Group'", "0", "0")
-
-# test case for delete user by id
-# del_user("12345")
-
-# test case for delete transaction by id
-# del_transaction("6")
-
-# test case for deleting settled transactions (must delete transaction #5)
-# clear_transaction()
-
-# test case for deleting group by id
-# del_group("12345")
-
-# test case for searching transaction by id
-# search_transaction_id("1")
-# test case for searching transaction by name
-# search_transaction_name("ol")
-
-# test case for searching user by id
-# search_user_id("99999")
-# test case for searchin user by name
-# search_user_name("jack")
-
-# test case for searching group by id
-# search_grp_id("10203")
-# test case for searching group by name
-# search_grp_name("on")
-
-### TABLE CHECKER 
-# cursor.execute("SELECT * FROM `group`")
-# for x in cursor:
-#     print(x)
-
-
 
 ##### REPORTS TO BE GENERATED
 
@@ -306,9 +261,7 @@ def view_month(month):
 def curr_balance():
     sqlstatement = "select balance from USER where user_id = 10000"
     cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-# curr_balance()
+    return(cursor.fetchone()[0])
 
 # view all friends with outstanding balance;
 def view_friend_outbalance():
@@ -338,38 +291,6 @@ def view_group_outbalance():
         print(x)
 # view_group_outbalance()
 
-
-
-# frontend ---------------------------------------------------------------------------
-def handleSubmit():
-    view_groups()
-
-
-
-
-
-
-# setting themes
-customtkinter.set_appearance_mode("Dark")
-customtkinter.set_default_color_theme("green")
-
-# making app window
-app = customtkinter.CTk()
-app.geometry("720x480")
-app.title("Expense Tracker")
-
-# editing windows title
-title = customtkinter.CTkLabel(app, text="Hello World!")
-title.pack(padx=10, pady=10)
-
-tabview = customtkinter.CTkTabview(master=app)
-tabview.pack(padx=20, pady=20)
-
-tabview.add("Manage Reports")  # add tab at the end
-tabview.add("View Information")  # add tab at the end
-tabview.set("Manage Reports")  # set currently visible tab
-tab1 = tabview.tab("Manage Reports")
-tab2 = tabview.tab("View Information") 
 
 def add1():
     add = customtkinter.CTkToplevel()
@@ -409,16 +330,73 @@ def add1():
     button = customtkinter.CTkButton(add, text="Add User", command=lambda: add_user(input1.get(), input2.get(), input3.get(), input4.get(), input5.get()))
     button.pack(padx=10, pady=10)
 
-button1 = customtkinter.CTkButton(tab1, text="Add User", command=add1)
-button1.pack(padx=10, pady=10)
-button2 = customtkinter.CTkButton(tab1, text="Add Transaction", command=handleSubmit)
-button2.pack(padx=10, pady=10)
-button3 = customtkinter.CTkButton(tab1, text="Add Group", command=handleSubmit)
-button3.pack(padx=10, pady=10)
+# frontend ---------------------------------------------------------------------------
+
+# setting themes
+customtkinter.set_appearance_mode("Dark")
+customtkinter.set_default_color_theme("green")
+
+# making app window
+class MainApp(customtkinter.CTk):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Expense Tracker")
+        self.after(1, self.wm_state, 'zoomed')
+
+app = MainApp()
+
+tabview = customtkinter.CTkTabview(master=app, width=1080, height=720)
+tabview.pack(padx=20, pady=50)
+
+tabview.add("Expense")  # add tab at the end
+tabview.add("Friends")  # add tab at the end
+tabview.add("Groups")  # add tab at the end
+tabview.set("Expense")  # set currently visible tab
+tab1 = tabview.tab("Expense")
+tab2 = tabview.tab("Friends")
+tab3 = tabview.tab("Groups")
 
 
-button = customtkinter.CTkButton(tab2, text="Show Groups", command=handleSubmit)
-button.pack(padx=10, pady=10)
+tab1.columnconfigure(index=0, weight=1)
+tab1.columnconfigure(index=6, weight=1)
+tbalance = customtkinter.CTkLabel(tab1, text="Total Balance:", font=("Segoi UI", 20))
+tbalance.grid(row=0, column=1, pady=(30, 5))
+abalance = customtkinter.CTkLabel(tab1, text="Php" + str(curr_balance()), font=("Segoi UI", 20), text_color="#31A37C")
+abalance.grid(row=0, column=2, pady=(30, 5))
+
+history = customtkinter.CTkLabel(tab1, text="History", font=("Segoe UI", 15))
+history.grid(row=1, column=1, pady=5)
+search = customtkinter.CTkEntry(tab1, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
+search.grid(row=1, column=3, pady=5, padx=5)
+id_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5)
+id_search.grid(row=1,column=4, padx=5)
+name_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by Name", corner_radius=5, fg_color="#4B4947")
+name_search.grid(row=1,column=5, pady=5, padx=5)
+
+expenses = customtkinter.CTkScrollableFrame(tab1, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
+expenses.grid(row=2, column=1, columnspan=5, pady=5)
+
+filterby = customtkinter.CTkLabel(tab1, text="Filter By Month", font=("Segoe UI", 15))
+filterby.grid(row=3, column=1, pady=5)
+
+def combobox_callback(choice):
+    print("combobox dropdown clicked:", choice)
+
+combobox = customtkinter.CTkComboBox(tab1, values=["January", "February", "March", "April",
+                                                   "May", "June", "July", "August",
+                                                   "September", "October", "November", "December"],
+                                     command=combobox_callback)
+combobox.grid(row=3, column=2, pady=5, padx=5)
+combobox.set("Month")
+
+borrow = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5)
+borrow.grid(row=3,column=4, pady=5, padx=5)
+lend = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by Name", corner_radius=5, fg_color="#4B4947")
+lend.grid(row=3,column=5, pady=5, padx=5)
+
+
+
+
 
 # runs the app
 app.mainloop()
