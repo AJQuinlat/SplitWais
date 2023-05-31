@@ -242,6 +242,12 @@ def view_month(month):
         print(x)
 # view_month("1")
 
+# view all expenses made with a friend
+def view_all_transaction():
+    cursor.execute("SELECT * FROM transaction")
+    return(cursor.fetchall())
+
+
 # # view all expenses made with a friend
 # def view_friend(friend):
 #     sqlstatement = "SELECT * FROM transaction WHERE user_id = " + friend + "loaner ="
@@ -375,6 +381,28 @@ name_search.grid(row=1,column=5, pady=5, padx=5)
 
 expenses = customtkinter.CTkScrollableFrame(tab1, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
 expenses.grid(row=2, column=1, columnspan=5, pady=5)
+
+customtkinter.CTkLabel(expenses, text="ID").grid(column=1, row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Name").grid(column=2,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Loaner").grid(column=3,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Loanee").grid(column=4,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Amount").grid(column=5,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Date Created").grid(column=6,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Date Paid").grid(column=7,row=1, padx=10)
+
+transactions = view_all_transaction()
+for i in range(len(transactions)):
+    for j in range(7):
+        if transactions[i][j] == None:
+            customtkinter.CTkLabel(expenses, text="-").grid(column=j+1, row=i+2, padx=10)
+        else:    
+            customtkinter.CTkLabel(expenses, text=transactions[i][j]).grid(column=j+1, row=i+2, padx=10, pady=30)
+        
+        customtkinter.CTkButton(expenses, text="Settle", width=50, fg_color="#2B2B2B").grid(column=8, row=i+2, padx=(30,2))
+        customtkinter.CTkButton(expenses, text="Delete", width=50, fg_color="#2B2B2B").grid(column=9, row=i+2, padx=2)
+        customtkinter.CTkButton(expenses, text="Edit", width=50, fg_color="#2B2B2B").grid(column=10, row=i+2, padx=2)
+
+
 
 filterby = customtkinter.CTkLabel(tab1, text="Filter By Month", font=("Segoe UI", 15))
 filterby.grid(row=3, column=1, pady=5)
