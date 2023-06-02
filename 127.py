@@ -1,4 +1,5 @@
-import tkinter
+import tkinter as tk
+import tkinter.font as font
 import customtkinter
 import datetime as dt
 import mysql.connector as mariadb
@@ -423,6 +424,65 @@ lend = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by Name",
 lend.grid(row=3,column=5, pady=5, padx=5)
 
 
+#---------------------------------------user tab ------------------------------------------------------
+
+tab2.columnconfigure(index=0, weight=1)
+tab2.columnconfigure(index=6, weight=1)
+
+button_font = font.Font(size=20)
+# search bar and buttons
+search_box = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
+search_box.grid(row=1, column=3, sticky = tk.W, pady = (50, 5), padx = (70, 0))
+
+
+
+def searchNow():
+    selected = search_drop.get()
+    if selected == "First Name":
+        #search by first name
+        query = "SELECT * FROM user where first_name = %s"
+    if selected == "Last Name":
+        #search by last name
+        query = "SELECT * FROM user where last_name = %s"
+    if selected == "Middle Name":
+        #search by middle name
+        query = "SELECT * FROM user where middle_name = %s"
+    if selected == "User ID":
+       #search by user ID
+       query = "SELECT * FROM user where user_id = %s"
+    # else:
+    #     result = "Select from drop down"
+    
+    searchVal = search_box.get()
+    name = (searchVal,)
+    result = cursor.execute(query, name)
+    result = cursor.fetchall()
+
+    if not result:
+        result = " Record Not Found..."
+
+    # search_label = customtkinter.CTkLabel(users, text = result)
+    # search_label.grid(row=5, column=1, columnspan=5, pady=5)
+    users.config(text = result)
+
+search_button = customtkinter.CTkButton(tab2, width=75, height=30, text=" Search", corner_radius=5 , command = searchNow)
+search_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (70, 0))
+
+#drop down
+search_drop = customtkinter.CTkComboBox(tab2, values=["First Name", "Last Name", "Middle Name","User ID",], command=combobox_callback)
+search_drop.grid(row=1, column=4, sticky = tk.W, pady = (50, 5))
+search_drop.set("Search by..")
+
+#user table
+user_Table = customtkinter.CTkLabel(tab2, text="Friends", font=("Segoe UI", 15))
+user_Table.grid(row=4, column=1, pady=5)
+
+users = customtkinter.CTkScrollableFrame(tab2, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
+users.grid(row=5, column=1, columnspan=5, pady=5)
+
+
+addUser = customtkinter.CTkButton(tab2, width=110, height=30, text="Add Friend", corner_radius=5, command = add1)
+addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady=5)
 
 
 
