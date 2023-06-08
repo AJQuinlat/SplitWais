@@ -19,7 +19,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="tiger", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -435,11 +435,13 @@ button_font = font.Font(size=20)
 search_box = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 search_box.grid(row=1, column=3, sticky = tk.W, pady = (50, 5), padx = (70, 0))
 
+def deleteLabels():
+    for widget in users.winfo_children():
+        widget.destroy()
+
 def update_scrollable_frame(result, allData):
-    # # empty = ""
-    # for j in range(len(users.winfo_children())):
-        
-    # users.winfo_children().destroy()
+
+    deleteLabels()
 
     for i in range(len(result)):
         search_label = customtkinter.CTkLabel(users, text = result[i])
