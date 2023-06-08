@@ -53,7 +53,7 @@ cursor.execute('''
 cursor.execute('''
     create table has(
         user_id int(5),
-        group_id int(5),
+        group_id int(4),
         constraint table_user_id_fk foreign key (user_id) references user(user_id),
         constraint table_group_id_fk foreign key(group_id) references `group`(group_id)
     );
@@ -108,18 +108,18 @@ mariadb_connection.commit()
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
     insert into has values
-        (11111, 10203),
-        (22222, 10203),
-        (44444, 10203),
-        (55555, 10203),
-        (77777, 10203),
-        (88888, 10203),
-        (99999, 10203),
-        (10000, 10203),
-        (11111, 10204),
-        (33333, 10204),
-        (11111, 10201),
-        (66666, 10201);
+        (11111, 1023),
+        (22222, 1023),
+        (44444, 1023),
+        (55555, 1023),
+        (77777, 1023),
+        (88888, 1023),
+        (99999, 1023),
+        (10000, 1023),
+        (11111, 1024),
+        (33333, 1024),
+        (11111, 1021),
+        (66666, 1021);
 ''')
 mariadb_connection.commit()
 
@@ -766,6 +766,12 @@ def deleteUser(id):
     cursor.execute(query, toDel)
     mariadb_connection.commit()
     defaultDisplay()
+
+def viewFriendOutbal():
+    query = "select * from USER where Balance > 0 and user_id != 10000 order by balance desc"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_scrollable_frame(result)
     
 
 tab2.columnconfigure(index=0, weight=1)
@@ -776,11 +782,15 @@ button_font = font.Font(size=20)
 search_box = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 search_box.grid(row=1, column=3, sticky = tk.W, pady = (50, 5), padx = (70, 0))
 
+#Buttons
 search_button = customtkinter.CTkButton(tab2, width=75, height=30, text="Search", corner_radius=5 , command = searchNow)
 search_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (70, 0))
 
-viewAll_button = customtkinter.CTkButton(tab2, width=75, height=30, text="View All", corner_radius=5 , command = defaultDisplay, fg_color="#242424")
+viewAll_button = customtkinter.CTkButton(tab2, width=75, height=30, text="View All", corner_radius=5 , command = defaultDisplay, fg_color="#565B5E")
 viewAll_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (150, 0))
+
+viewOutstanding_button = customtkinter.CTkButton(tab2, width=75, height=30, text="Outstanding Records", corner_radius=5 , command = viewFriendOutbal, fg_color="#242424")
+viewOutstanding_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (230, 0))
 #drop down
 search_drop = customtkinter.CTkComboBox(tab2, values=["First Name", "Last Name", "Middle Name","User ID",])
 search_drop.grid(row=1, column=4, sticky = tk.W, pady = (50, 5))
