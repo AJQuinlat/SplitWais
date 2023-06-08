@@ -3,6 +3,7 @@ import tkinter.font as font
 import customtkinter
 import datetime as dt
 import mysql.connector as mariadb
+from tkinter import messagebox as msg
 
 # makes a table window with inputs list from select and window title
 def table(lst, title):
@@ -126,18 +127,22 @@ mariadb_connection.commit()
 ### FEATURES ------------------------------------------------------------------------
 # add user function
 def add_user(user_id, balance, fname, mname, lname):
-    fname="'"+fname+"'"
-    mname="'"+mname+"'"
-    lname="'"+lname+"'"
-    sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
-    cursor.execute(sql_statement)
-    mariadb_connection.commit()
-    input1.delete(0,"end")
-    input2.delete(0,"end")
-    input3.delete(0,"end")
-    input4.delete(0,"end")
-    input5.delete(0,"end")
-    defaultDisplay()
+
+    if len(user_id) != 5:
+        msg.showerror(title="Error", message="Error: Length of User ID should be 5")
+    else:
+        fname="'"+fname+"'"
+        mname="'"+mname+"'"
+        lname="'"+lname+"'"
+        sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
+        cursor.execute(sql_statement)
+        mariadb_connection.commit()
+        input1.delete(0,"end")
+        input2.delete(0,"end")
+        input3.delete(0,"end")
+        input4.delete(0,"end")
+        input5.delete(0,"end")
+        defaultDisplay()
 
 # add transaction function
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
