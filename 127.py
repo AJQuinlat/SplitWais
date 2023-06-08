@@ -19,7 +19,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="MariaDB", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -525,7 +525,66 @@ users.grid(row=5, column=1, columnspan=5, pady=5)
 addUser = customtkinter.CTkButton(tab2, width=110, height=30, text="Add Friend", corner_radius=5, command = add1)
 addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady=5)
 
+# ==================================== GROUPS ===================================================
 
+tab3.columnconfigure(index=0, weight=1)
+tab3.columnconfigure(index=6, weight=1)
+totalGroupBalanceLabel = customtkinter.CTkLabel(tab2, text="Total balance from all groups:", font=("Segoi UI", 20))
+totalGroupBalanceLabel.grid(row=0, column=1, pady=(30, 5))
+totalGroupBalance = customtkinter.CTkLabel(tab2, text="Php" + str(curr_balance()), font=("Segoi UI", 20), text_color="#31A37C")
+totalGroupBalance.grid(row=0, column=2, pady=(30, 5))
+
+# history = customtkinter.CTkLabel(tab1, text="Groups", font=("Segoe UI", 15))
+# history.grid(row=1, column=1, pady=5)
+searchBarGroup = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
+searchBarGroup.grid(row=1, column=3, pady=5, padx=5)
+searchByGroupID = customtkinter.CTkButton(tab2, width=75, height=30, text="Search by Group ID", corner_radius=5)
+searchByGroupID.grid(row=1,column=4, padx=5)
+searchByGroupName = customtkinter.CTkButton(tab2, width=75, height=30, text="Search by Group Name", corner_radius=5, fg_color="#4B4947")
+searchByGroupName.grid(row=1,column=5, pady=5, padx=5)
+
+expenses = customtkinter.CTkScrollableFrame(tab1, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
+expenses.grid(row=2, column=1, columnspan=5, pady=5)    
+
+customtkinter.CTkLabel(expenses, text="ID").grid(column=1, row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Name").grid(column=2,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Loaner").grid(column=3,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Loanee").grid(column=4,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Amount").grid(column=5,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Date Created").grid(column=6,row=1, padx=10)
+customtkinter.CTkLabel(expenses, text="Date Paid").grid(column=7,row=1, padx=10)
+
+transactions = view_all_transaction()
+for i in range(len(transactions)):
+    for j in range(7):
+        if transactions[i][j] == None:
+            customtkinter.CTkLabel(expenses, text="-").grid(column=j+1, row=i+2, padx=10)
+        else:    
+            customtkinter.CTkLabel(expenses, text=transactions[i][j]).grid(column=j+1, row=i+2, padx=10, pady=30)
+        
+        customtkinter.CTkButton(expenses, text="Settle", width=50, fg_color="#2B2B2B").grid(column=8, row=i+2, padx=(30,2))
+        customtkinter.CTkButton(expenses, text="Delete", width=50, fg_color="#2B2B2B").grid(column=9, row=i+2, padx=2)
+        customtkinter.CTkButton(expenses, text="Edit", width=50, fg_color="#2B2B2B").grid(column=10, row=i+2, padx=2)
+
+
+
+filterby = customtkinter.CTkLabel(tab1, text="Filter By Month", font=("Segoe UI", 15))
+filterby.grid(row=3, column=1, pady=5)
+
+def combobox_callback(choice):
+    print("combobox dropdown clicked:", choice)
+
+combobox = customtkinter.CTkComboBox(tab1, values=["January", "February", "March", "April",
+                                                   "May", "June", "July", "August",
+                                                   "September", "October", "November", "December"],
+                                     command=combobox_callback)
+combobox.grid(row=3, column=2, pady=5, padx=5)
+combobox.set("Month")
+
+borrow = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5)
+borrow.grid(row=3,column=4, pady=5, padx=5)
+lend = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by Name", corner_radius=5, fg_color="#4B4947")
+lend.grid(row=3,column=5, pady=5, padx=5)
 
 # runs the app
 app.mainloop()
