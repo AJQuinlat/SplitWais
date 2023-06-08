@@ -448,7 +448,7 @@ def editNow(id, index):
     name = (id, )
     result = cursor.execute(query, name)
     result = cursor.fetchall()
-
+    
     global fnameInput
     global mnameInput
     global lnameInput
@@ -481,9 +481,9 @@ def update_scrollable_frame(result):
 
     for i, user in enumerate(result):
         num = 0
-        id_reference = str(result[0][0])
-        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", command=lambda:deleteUser(id_reference)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        id_reference = str(user[0])
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editNow(d, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
             search_label = customtkinter.CTkLabel(users, text = data)
@@ -498,16 +498,16 @@ def searchNow():
         query = "SELECT * FROM user order by first_name"
     if selected == "First Name":
         #search by first name
-        query = "SELECT * FROM user where first_name = %s"
+        query = "SELECT * FROM user where first_name = %s order by first_name "
     if selected == "Last Name":
         #search by last name
-        query = "SELECT * FROM user where last_name = %s"
+        query = "SELECT * FROM user where last_name = %s order by first_name"
     if selected == "Middle Name":
         #search by middle name
-        query = "SELECT * FROM user where middle_name = %s"
+        query = "SELECT * FROM user where middle_name = %s order by first_name"
     if selected == "User ID":
        #search by user ID
-       query = "SELECT * FROM user where user_id = %s"
+       query = "SELECT * FROM user where user_id = %s order by first_name"
     # else:
     #     result = "Select from drop down"
     
