@@ -137,7 +137,7 @@ def add_user(user_id, balance, fname, mname, lname):
     input3.delete(0,"end")
     input4.delete(0,"end")
     input5.delete(0,"end")
-
+    defaultDisplay()
 
 # add transaction function
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
@@ -439,14 +439,23 @@ def deleteLabels():
     for widget in users.winfo_children():
         widget.destroy()
 
-def update_scrollable_frame(result, allData):
+def update_scrollable_frame(result):
 
     deleteLabels()
 
-    for i in range(len(result)):
-        search_label = customtkinter.CTkLabel(users, text = result[i])
-        search_label.grid(row=5+i, column=5, columnspan=5, pady=5)
+    # for i in range(len(result)):
+    #     search_label = customtkinter.CTkLabel(users, text = result[i])
+    #     search_label.grid(row=5+i, column=5, columnspan=5, pady=5)
 
+    for i, user in enumerate(result):
+        num = 0
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B").grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B").grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+
+        for data in user:
+            search_label = customtkinter.CTkLabel(users, text = data)
+            search_label.grid(row=5+i, column= num, padx= (40, 0), pady = (30, 0))
+            num +=1
 
     #orig code startes here
     # search_label = customtkinter.CTkLabel(users, text = result)
@@ -474,56 +483,52 @@ def searchNow():
     #     result = "Select from drop down"
     
 
-    # this is for getting the range of all data usesd for reseting scrollable
-    allDataQuery = "SELECT * FROM user"
-    allData = cursor.execute(allDataQuery, )
-    allData = cursor.fetchall()
-
     searchVal = search_box.get()
     if searchVal == "":
         result = cursor.execute(query, )
         result = cursor.fetchall()
-        update_scrollable_frame(result, allData)
+        update_scrollable_frame(result)
 
     else:
+        # Update the scrollable frame with the new data
         name = (searchVal,)
         result = cursor.execute(query, name)
         result = cursor.fetchall()
-        update_scrollable_frame(result, allData)
-
+        update_scrollable_frame(result)
+    
     if not result:
-        result = "Record Not Found..."
+            result = "Record Not Found..."
 
-    # Update the scrollable frame with the new data
+
    
 
 def defaultDisplay():
-    defaultDisplayQuery = "SELECT * FROM user"
-    defaultDisplayResult = cursor.execute(defaultDisplayQuery, )
-    defaultDisplayResult = cursor.fetchall()
-    update_scrollable_frame(defaultDisplayResult)
+    query = "SELECT * FROM user ORDER BY first_name"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_scrollable_frame(result)
 
 
-search_button = customtkinter.CTkButton(tab2, width=75, height=30, text=" Search", corner_radius=5 , command = searchNow)
+search_button = customtkinter.CTkButton(tab2, width=75, height=30, text="Search", corner_radius=5 , command = searchNow)
 search_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (70, 0))
 
+viewAll_button = customtkinter.CTkButton(tab2, width=75, height=30, text="View All", corner_radius=5 , command = defaultDisplay, fg_color="#242424")
+viewAll_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (150, 0))
 #drop down
 search_drop = customtkinter.CTkComboBox(tab2, values=["First Name", "Last Name", "Middle Name","User ID",], command=combobox_callback)
 search_drop.grid(row=1, column=4, sticky = tk.W, pady = (50, 5))
 search_drop.set("Search by..")
 
-
-users = customtkinter.CTkScrollableFrame(tab2, width=720, height=350, fg_color="#4B4947", corner_radius=0)
-users.grid(row=5, column=1, columnspan=5, pady=5)
-
-
-
 users = customtkinter.CTkScrollableFrame(tab2, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
-users.grid(row=5, column=1, columnspan=5, pady=5)
+users.grid(row=6, column=1, columnspan=5, pady=(0,0))
+
+usersLabel = customtkinter.CTkLabel(tab2, width=737, height= 30, fg_color = "#242424", text= "I")
+usersLabel.grid(row=5, column=1, columnspan=5, pady= (10,0), padx = (0,0))
+# 
 
 
 addUser = customtkinter.CTkButton(tab2, width=110, height=30, text="Add Friend", corner_radius=5, command = add1)
-addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady=5)
+addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady= (10,0))
 
 
 
