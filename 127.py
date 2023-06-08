@@ -565,8 +565,19 @@ users = customtkinter.CTkScrollableFrame(tab2, width = 720, height = 350, fg_col
 users.grid(row=6, column=1, columnspan=5, pady=(0,0))
 
 #Label
-usersLabel = customtkinter.CTkLabel(tab2, width=737, height= 30, fg_color = "#242424", text= "I")
+usersLabel = customtkinter.CTkLabel(tab2, width=737, height= 30, fg_color = "#242424", text= "")
 usersLabel.grid(row=5, column=1, columnspan=5, pady= (10,0), padx = (0,0))
+idLbl=customtkinter.CTkLabel(tab2, width=50, height= 20, fg_color = "#242424", text= "ID")
+idLbl.place(x=200 , y =140)
+balLbl=customtkinter.CTkLabel(tab2, width=50, height= 20, fg_color = "#242424", text= "Balance")
+balLbl.place(x=280 , y =140)
+fnameLbl=customtkinter.CTkLabel(tab2, width=50, height= 20, fg_color = "#242424", text= "First Name")
+fnameLbl.place(x=370 , y =140)
+mnameLbl=customtkinter.CTkLabel(tab2, width=50, height= 20, fg_color = "#242424", text= "Middle Name")
+mnameLbl.place(x=460 , y =140)
+lnameLbl=customtkinter.CTkLabel(tab2, width=50, height= 20, fg_color = "#242424", text= "Last Name")
+lnameLbl.place(x=560 , y =140)
+
 #Add user 
 addUser = customtkinter.CTkButton(tab2, width=110, height=30, text="Add Friend", corner_radius=5, command = add1)
 addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady= (10,0))
