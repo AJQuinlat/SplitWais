@@ -19,7 +19,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="tiger", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -435,10 +435,15 @@ button_font = font.Font(size=20)
 search_box = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 search_box.grid(row=1, column=3, sticky = tk.W, pady = (50, 5), padx = (70, 0))
 
-def update_scrollable_frame(result):
-    for i in range(len(transactions)):
+def update_scrollable_frame(result, allData):
+    # # empty = ""
+    # for j in range(len(users.winfo_children())):
+        
+    # users.winfo_children().destroy()
+
+    for i in range(len(result)):
         search_label = customtkinter.CTkLabel(users, text = result[i])
-        search_label.grid(row=5, column=1, columnspan=5, pady=5)
+        search_label.grid(row=5+i, column=5, columnspan=5, pady=5)
 
 
     #orig code startes here
@@ -466,17 +471,23 @@ def searchNow():
     # else:
     #     result = "Select from drop down"
     
+
+    # this is for getting the range of all data usesd for reseting scrollable
+    allDataQuery = "SELECT * FROM user"
+    allData = cursor.execute(allDataQuery, )
+    allData = cursor.fetchall()
+
     searchVal = search_box.get()
     if searchVal == "":
         result = cursor.execute(query, )
         result = cursor.fetchall()
-        update_scrollable_frame(result)
+        update_scrollable_frame(result, allData)
 
     else:
         name = (searchVal,)
         result = cursor.execute(query, name)
         result = cursor.fetchall()
-        update_scrollable_frame(result)
+        update_scrollable_frame(result, allData)
 
     if not result:
         result = "Record Not Found..."
