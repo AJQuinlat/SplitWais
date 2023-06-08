@@ -427,14 +427,6 @@ lend.grid(row=3,column=5, pady=5, padx=5)
 #---------------------------------------user tab ------------------------------------------------------
 global users
 
-tab2.columnconfigure(index=0, weight=1)
-tab2.columnconfigure(index=6, weight=1)
-
-button_font = font.Font(size=20)
-# search bar and buttons
-search_box = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
-search_box.grid(row=1, column=3, sticky = tk.W, pady = (50, 5), padx = (70, 0))
-
 def deleteLabels():
     for widget in users.winfo_children():
         widget.destroy()
@@ -490,7 +482,7 @@ def update_scrollable_frame(result):
     for i, user in enumerate(result):
         num = 0
         id_reference = str(result[0][0])
-        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B").grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", command=lambda:deleteUser(id_reference)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
         customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
@@ -498,16 +490,12 @@ def update_scrollable_frame(result):
             search_label.grid(row=5+i, column= num, padx= (40, 0), pady = (30, 0))
             num +=1 
 
-    #orig code startes here
-    # search_label = customtkinter.CTkLabel(users, text = result)
-    # search_label.grid(row=5, column=1, columnspan=5, pady=5)
-
 def searchNow():
     selected = search_drop.get()
     query = ""  # Initialize the variable with a default value
 
     if selected == "Search by..":
-        query = "SELECT * FROM user"
+        query = "SELECT * FROM user order by first_name"
     if selected == "First Name":
         #search by first name
         query = "SELECT * FROM user where first_name = %s"
@@ -540,15 +528,27 @@ def searchNow():
     if not result:
             result = "Record Not Found..."
 
-
-   
-
 def defaultDisplay():
     query = "SELECT * FROM user ORDER BY first_name"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_scrollable_frame(result)
 
+def deleteUser(id):
+    query = "DELETE FROM user WHERE user_id = %s"
+    toDel = (id, )
+    cursor.execute(query, toDel)
+    mariadb_connection.commit()
+    defaultDisplay()
+    
+
+tab2.columnconfigure(index=0, weight=1)
+tab2.columnconfigure(index=6, weight=1)
+
+button_font = font.Font(size=20)
+# search bar and buttons
+search_box = customtkinter.CTkEntry(tab2, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
+search_box.grid(row=1, column=3, sticky = tk.W, pady = (50, 5), padx = (70, 0))
 
 search_button = customtkinter.CTkButton(tab2, width=75, height=30, text="Search", corner_radius=5 , command = searchNow)
 search_button.grid(row=2,column=3, sticky = tk.W, pady = (5, 5), padx = (70, 0))
