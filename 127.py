@@ -855,9 +855,9 @@ def update_group_scrollable_frame(result):
     deleteGroupLabels()
 
     for i, group in enumerate(result):
-        num = 0
-        id_reference = str(result[0][0])
-        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", command=lambda:deleteGroup(id_reference)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        num = 0 
+        id_reference = str(group[0])
+        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:deleteGroup(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editGroupNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in group:
