@@ -439,23 +439,64 @@ def deleteLabels():
     for widget in users.winfo_children():
         widget.destroy()
 
+def edit_user(id):
+    #update user info using this query
+    query = "UPDATE user SET first_name = %s, middle_name = %s, last_name = %s WHERE user_id = %s"
+    inputs = (fnameInput.get(), mnameInput.get(), lnameInput.get(), id)
+    cursor.execute(query, inputs)
+    mariadb_connection.commit()
+    defaultDisplay()
+
+def editNow(id, index):
+    edit = customtkinter.CTkToplevel()
+    edit.grab_set()
+
+    # get the tuple
+    query = "SELECT * FROM user WHERE user_id = %s"
+    name = (id, )
+    result = cursor.execute(query, name)
+    result = cursor.fetchall()
+
+    global fnameInput
+    global mnameInput
+    global lnameInput
+
+    #get values you want to be updated
+    fname = customtkinter.CTkLabel(edit, text="First Name")
+    fname.pack()
+    fnameInput = customtkinter.CTkEntry(edit, width=350, height=20)
+    fnameInput.insert(0, result[0][2])
+    fnameInput.pack()
+
+    mname = customtkinter.CTkLabel(edit, text="Middle Name")
+    mname.pack()
+    mnameInput = customtkinter.CTkEntry(edit, width=350, height=20)
+    mnameInput.insert(0, result[0][3])
+    mnameInput.pack()
+
+    lname = customtkinter.CTkLabel(edit, text="Last Name")
+    lname.pack()
+    lnameInput = customtkinter.CTkEntry(edit, width=350, height=20)
+    lnameInput.insert(0, result[0][4])
+    lnameInput.pack()
+
+    button = customtkinter.CTkButton(edit, text="Submit Edit", command=lambda: edit_user(id))
+    button.pack(padx=10, pady=10)
+
 def update_scrollable_frame(result):
-
+    #delete existing labels
     deleteLabels()
-
-    # for i in range(len(result)):
-    #     search_label = customtkinter.CTkLabel(users, text = result[i])
-    #     search_label.grid(row=5+i, column=5, columnspan=5, pady=5)
 
     for i, user in enumerate(result):
         num = 0
+        id_reference = str(result[0][0])
         customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B").grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B").grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
             search_label = customtkinter.CTkLabel(users, text = data)
             search_label.grid(row=5+i, column= num, padx= (40, 0), pady = (30, 0))
-            num +=1
+            num +=1 
 
     #orig code startes here
     # search_label = customtkinter.CTkLabel(users, text = result)
@@ -519,14 +560,14 @@ search_drop = customtkinter.CTkComboBox(tab2, values=["First Name", "Last Name",
 search_drop.grid(row=1, column=4, sticky = tk.W, pady = (50, 5))
 search_drop.set("Search by..")
 
+#Scrollable table
 users = customtkinter.CTkScrollableFrame(tab2, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
 users.grid(row=6, column=1, columnspan=5, pady=(0,0))
 
+#Label
 usersLabel = customtkinter.CTkLabel(tab2, width=737, height= 30, fg_color = "#242424", text= "I")
 usersLabel.grid(row=5, column=1, columnspan=5, pady= (10,0), padx = (0,0))
-# 
-
-
+#Add user 
 addUser = customtkinter.CTkButton(tab2, width=110, height=30, text="Add Friend", corner_radius=5, command = add1)
 addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady= (10,0))
 
