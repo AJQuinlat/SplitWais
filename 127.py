@@ -77,21 +77,15 @@ sql_statement = '''
 cursor.execute(sql_statement)
 mariadb_connection.commit()
 
-# cursor.execute("SELECT * FROM user")
-# for x in cursor:
-#     print(x)
 
 cursor.execute('''
     insert into `group` values
     (1023, "Overwatch", 8, 0),
+    (1111, "Testing", 4, 0),
     (1024, "Talon", 2, 200.00),
     (1021, "Helix Corporation", 2, 0);
 ''')
 mariadb_connection.commit()
-
-# cursor.execute("SELECT * FROM `group`")
-# for x in cursor:
-#     print(x)
 
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
@@ -100,7 +94,8 @@ cursor.execute('''
     (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
     (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
     (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
-    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111); 
+    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
+    (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
 
 ''')
 mariadb_connection.commit()
@@ -108,18 +103,22 @@ mariadb_connection.commit()
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
     insert into has values
-        (11111, 10203),
-        (22222, 10203),
-        (44444, 10203),
-        (55555, 10203),
-        (77777, 10203),
-        (88888, 10203),
-        (99999, 10203),
-        (10000, 10203),
-        (11111, 10204),
-        (33333, 10204),
-        (11111, 10201),
-        (66666, 10201);
+        (11111, 1023),
+        (22222, 1023),
+        (44444, 1023),
+        (55555, 1023),
+        (77777, 1023),
+        (88888, 1023),
+        (99999, 1023),
+        (10000, 1023),
+        (11111, 1024),
+        (33333, 1024),
+        (11111, 1021),
+        (66666, 1021),
+        (10000, 1111),
+        (11111, 1111),
+        (22222, 1111),
+        (33333, 1111);
 ''')
 mariadb_connection.commit()
 
@@ -239,11 +238,28 @@ def view_month(month):
         print(x)
 
 # view all expenses made with a friend
-def search_transaction_friend():
-    query = "SELECT * FROM transaction WHERE transaction_name LIKE '%" + tname + "%'"
-    result = cursor.execute(query,)
+def search_transaction_friend(fid):
+    transactions=[]
+    query = "select * from transaction where (user_id=" + fid + " and loaner=10000) or (loaner=" + fid + " and user_id=10000)"
+    result = cursor.execute(query)
     result = cursor.fetchall()
-    update_transaction_scrollable_frame(result)
+    friend = [x for x in result]
+    if friend != 0:
+        transactions.append(friend)
+
+    query = "select group_id from has where user_id!=10000 and group_id in (select group_id from has where user_id=10000) and user_id=" + fid
+    result = cursor.execute(query)
+    result = cursor.fetchall()
+    newlist = [x[0] for x in result]
+
+    for i in newlist:
+        query = "select * from transaction where group_id=" + str(i) + " or loaner=" + str(i) + " or loanee=" +str(i)
+        result = cursor.execute(query)
+        result = cursor.fetchall()
+        transactions.append(result)
+
+    print(transactions)
+    # update_transaction_scrollable_frame(result)
     
 
 
@@ -336,7 +352,7 @@ def add1():
     button.pack(padx=10, pady=10)
 
 # select * from has where user_id!=10000 and group_id in (select group_id from has where user_id=10000);
-
+# select group_id from has where user_id!=10000 and group_id in (select group_id from has where user_id=10000) and user_id=11111;
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
     curr = dt.datetime.now()
     tdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
@@ -505,12 +521,13 @@ def update_transaction_scrollable_frame(result):
     #delete existing labels
     deleteTransactionLabels()
 
+
     for i, transaction in enumerate(result):
         num = 0
-        id_reference = str(result[0][0])
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", command=lambda:deleteTransaction(id_reference)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editTransactionNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
-
+        id_reference = str(transaction[0])
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteTransaction(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+    
         for data in transaction:
             if num < 7:
                 search_label = customtkinter.CTkLabel(transactions, text = data)
@@ -705,9 +722,9 @@ def update_scrollable_frame(result):
 
     for i, user in enumerate(result):
         num = 0
-        id_reference = str(result[0][0])
-        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", command=lambda:deleteUser(id_reference)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        id_reference = str(user[0])
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editNow(d, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
             search_label = customtkinter.CTkLabel(users, text = data)
