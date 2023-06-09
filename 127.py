@@ -20,7 +20,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="MariaDB", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -162,8 +162,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
     
 # add group function
 def add_group(gid, gname, mem_no, balance):
-    sql_statement = "INSERT INTO `group` VALUES(" + gid + "," + gname + ","+ mem_no + "," + balance + ");"
-    print(sql_statement)
+    sql_statement = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
     cursor.execute(sql_statement)
     mariadb_connection.commit()
 
@@ -831,7 +830,165 @@ lnameLbl.place(x=560 , y =140)
 addUser = customtkinter.CTkButton(tab2, width=110, height=30, text="Add Friend", corner_radius=5, command = add1)
 addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady= (10,0))
 
+# ==================================== GROUPS ===================================================
 
+global groups
+
+def editGroup(id):
+    #update group info using this query
+    query = "UPDATE `group` SET group_name = %s WHERE group_id = %s"
+    inputs = (groupNameInput.get(), id)
+    cursor.execute(query, inputs)
+    mariadb_connection.commit()
+    defaultGroupDisplay()
+
+def editGroupNow(id, index):
+    edit = customtkinter.CTkToplevel()
+    edit.grab_set()
+
+    # get the tuple
+    query = "SELECT * FROM `group` WHERE group_id = %s"
+    name = (id, )
+    result = cursor.execute(query, name)
+    result = cursor.fetchall()
+
+    global groupNameInput
+
+    #get values you want to be updated
+    groupNameInput = customtkinter.CTkLabel(edit, text="Group Name")
+    groupNameInput.pack()
+    groupNameInput = customtkinter.CTkEntry(edit, width=350, height=20)
+    groupNameInput.insert(0, result[0][1])
+    groupNameInput.pack()
+
+    button = customtkinter.CTkButton(edit, text="Submit Edit", command=lambda: editGroup(id))
+    button.pack(padx=10, pady=10)
+
+def deleteGroup(id):
+    query = "DELETE FROM `group` WHERE group_id = %s"
+    toDel = (id, )
+    cursor.execute(query, toDel)
+    mariadb_connection.commit()
+    defaultGroupDisplay()
+
+def deleteGroupLabels():
+    for widget in groups.winfo_children():
+        widget.destroy()
+
+def update_group_scrollable_frame(result):
+    #delete existing labels
+    deleteGroupLabels()
+
+    for i, group in enumerate(result):
+        num = 0 
+        id_reference = str(group[0])
+        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:deleteGroup(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editGroupNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+
+        for data in group:
+            search_label = customtkinter.CTkLabel(groups, text = data)
+            search_label.grid(row=5+i, column= num, padx= (40, 0), pady = (30, 0))
+            num +=1 
+
+def defaultGroupDisplay():
+    query = "SELECT * FROM `group` ORDER BY group_id"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_group_scrollable_frame(result)
+    
+def showGroupWithOutstandingBalance():
+    query = "SELECT * FROM `group` where balance > 0 ORDER BY balance"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_group_scrollable_frame(result)
+
+def getAllGroupBalance():
+    query = "SELECT sum(balance) FROM `group`"
+    cursor.execute(query)
+    return(cursor.fetchone()[0])
+    
+# search a group by id
+def searchGroupByID(id):
+    query = "SELECT * FROM `group` WHERE group_id=" + id
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_group_scrollable_frame(result)
+    
+# search a group by name
+def searchGroupByName(name):
+    query = "SELECT * FROM `group` WHERE group_name LIKE '%" + name + "%'"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_group_scrollable_frame(result)
+
+def addNewGroup():
+    add = customtkinter.CTkToplevel()
+    add.grab_set()
+
+    global newGroupID
+    global newGroupName
+    # global newGroupMembers
+    # global newGroupBalance
+
+    lbl1 = customtkinter.CTkLabel(add, text="Group ID")
+    newGroupID = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl1.pack()
+    newGroupID.pack()
+
+    lbl2 = customtkinter.CTkLabel(add, text="Group Name")
+    newGroupName = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl2.pack()
+    newGroupName.pack()
+
+    # member parameter is set to 1 initially (self only)
+    button = customtkinter.CTkButton(add, text="Add Group", command=lambda: add_group(newGroupID.get(), newGroupName.get(), str(1), str(0)))
+    button.pack(padx=10, pady=10)
+
+tab3.columnconfigure(index=0, weight=1)
+tab3.columnconfigure(index=7, weight=1)
+button_font = font.Font(size=20)
+
+totalBalanceFromGroups = customtkinter.CTkLabel(tab3, text="Total balance from groups:  ", font=("Segoi UI", 20))
+totalBalanceFromGroups.grid(row=0, column=1, pady=(30, 5))
+totalBalanceFromGroupsValue = customtkinter.CTkLabel(tab3, text="PHP. " + str(getAllGroupBalance()), font=("Segoi UI", 20), text_color="#31A37C")
+totalBalanceFromGroupsValue.grid(row=0, column=2, pady=(30, 5))
+
+searchBar = customtkinter.CTkEntry(tab3, width=200, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
+searchBar.grid(row=1, column=1, pady=5, padx=5)
+
+searchByGroupIDBtn = customtkinter.CTkButton(tab3, width=75, height=30, text="Search by Group ID", corner_radius=5, command = lambda: searchGroupByID(searchBar.get()) )
+searchByGroupIDBtn.grid(row=1,column=2, padx=5)
+
+searchByGroupNameBtn = customtkinter.CTkButton(tab3, width=75, height=30, text="Search by Group Name", corner_radius=5, fg_color="#4B4947", command = lambda: searchGroupByName(searchBar.get()))
+searchByGroupNameBtn.grid(row=1,column=3, pady=5, padx=5)
+
+# CREATES THE TABLE
+groups = customtkinter.CTkScrollableFrame(tab3, width = 550, height = 350, fg_color="#4B4947", corner_radius=0)
+groups.grid(row=3, column=1, columnspan=6, pady=(0,5))
+
+groupLabel = customtkinter.CTkLabel(tab3, width=570, height= 30, fg_color = "#242424", text= "")
+groupLabel.grid(row=2, column=1, columnspan=6, pady= (10,0), padx = (0,0))
+groupIDLabel=customtkinter.CTkLabel(tab3, width=30, height= 20, fg_color = "#242424", text= "Group ID")
+groupIDLabel.place(x=275 , y =120)
+groupNameLabel=customtkinter.CTkLabel(tab3, width=50, height= 20, fg_color = "#242424", text= "Group Name")
+groupNameLabel.place(x=375 , y =120)
+memberNumberLabel=customtkinter.CTkLabel(tab3, width=50, height= 20, fg_color = "#242424", text= "Member Count")
+memberNumberLabel.place(x=475 , y =120)
+groupBalanceLabel=customtkinter.CTkLabel(tab3, width=50, height= 20, fg_color = "#242424", text= "Balance")
+groupBalanceLabel.place(x=575 , y =120)
+
+
+# add new group
+addGroupBtn = customtkinter.CTkButton(tab3, text="Add group", font=("Segoe UI", 15), command = addNewGroup)
+addGroupBtn.grid(row=4, column=1, pady=5)
+
+# all groups are shown
+showAllGroups = customtkinter.CTkButton(tab3, text="Show all groups", font=("Segoe UI", 15), command = defaultGroupDisplay)
+showAllGroups.grid(row=4, column=2, pady=5)
+
+# only groups with outstanding balance are shown
+showGroupsWithBalance = customtkinter.CTkButton(tab3, text="Show outstanding", font=("Segoe UI", 15), command = showGroupWithOutstandingBalance)
+showGroupsWithBalance.grid(row=4, column=3, pady=5)
 
 # runs the app
 app.mainloop()
