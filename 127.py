@@ -78,21 +78,15 @@ sql_statement = '''
 cursor.execute(sql_statement)
 mariadb_connection.commit()
 
-# cursor.execute("SELECT * FROM user")
-# for x in cursor:
-#     print(x)
 
 cursor.execute('''
     insert into `group` values
     (1023, "Overwatch", 8, 0),
+    (1111, "Testing", 4, 0),
     (1024, "Talon", 2, 200.00),
     (1021, "Helix Corporation", 2, 0);
 ''')
 mariadb_connection.commit()
-
-# cursor.execute("SELECT * FROM `group`")
-# for x in cursor:
-#     print(x)
 
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
@@ -101,7 +95,8 @@ cursor.execute('''
     (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
     (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
     (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
-    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111); 
+    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
+    (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
 
 ''')
 mariadb_connection.commit()
@@ -120,7 +115,11 @@ cursor.execute('''
         (11111, 1024),
         (33333, 1024),
         (11111, 1021),
-        (66666, 1021);
+        (66666, 1021),
+        (10000, 1111),
+        (11111, 1111),
+        (22222, 1111),
+        (33333, 1111);
 ''')
 mariadb_connection.commit()
 
@@ -244,28 +243,22 @@ def view_month(month):
         print(x)
 
 # view all expenses made with a friend
-def search_transaction_friend(tname):
-    query = "SELECT * FROM transaction WHERE transaction_name LIKE '%" + tname + "%'"
-    result = cursor.execute(query,)
-    result = cursor.fetchall()
+def search_transaction_friend(fid):
+    result=[]
+    if (len(fid)==5):
+        query = "SELECT * FROM transaction WHERE (user_id=" + str(fid) + " and loaner=10000) or (user_id=10000 and loaner=" + str(fid) + ")"
+        result = cursor.execute(query,)
+        result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
-    
 
-
-# # view all expenses made with a friend
-# def view_friend(friend):
-#     sqlstatement = "SELECT * FROM transaction WHERE user_id = " + friend + "loaner ="
-#     cursor.execute(sqlstatement)
-#     for x in cursor:
-#         print(x)
-# view_friend("11111")
-
-# # view all expenses made with a group
-# def view_group(group):
-#     sqlstatement = "SELECT * FROM transaction where Group_id =  " + group
-#     cursor.execute(sqlstatement)
-#     for x in cursor:
-#         print(x)
+# view all expenses made with a group
+def search_transaction_group(gid):
+    result=[]
+    if (len(gid)==4):
+        query = "SELECT * FROM transaction WHERE (group_id=" + str(gid) + " and loaner=10000) or (user_id=10000 and loaner=" + str(gid) + ")"
+        result = cursor.execute(query,)
+        result = cursor.fetchall()
+    update_transaction_scrollable_frame(result)
 
 # view current balance from all expenses
 def curr_balance():
@@ -340,9 +333,24 @@ def add1():
     button = customtkinter.CTkButton(add, text="Add User", command=lambda: add_user(input1.get(), input2.get(), input3.get(), input4.get(), input5.get()))
     button.pack(padx=10, pady=10)
 
-# select * from has where user_id!=10000 and group_id in (select group_id from has where user_id=10000);
+def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, borlend, type):
+    type = input2.get()
+    if (len(input2.get())==5):
+        if (borlend=="Borrow"):
+            uid = 10000
+        else:
+            loaner = 10000
+            uid = type
+            loanee = uid            
+    elif (len(input2.get())==4):
+        if (borlend=="Borrow"):
+            uid = 10000
+        else:
+            loaner = 10000
+            uid = type
+            loanee = uid
 
-def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
+    loaner = str(loaner)
     curr = dt.datetime.now()
     tdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
     if (pdate!="NULL"):
@@ -354,9 +362,13 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
         if (gid != "NULL"):
             sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, "+ gid + ", " + "NULL" + ")"
         else:
-            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, NULL, " + uid + ")"
+            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, NULL, " + str(uid) + ")"
+            print(sql_statement)
+    
     cursor.execute(sql_statement)
     mariadb_connection.commit()
+    add.destroy()
+    defaultTransactionDisplay()
 
 def addTransaction(borlend):
     add = customtkinter.CTkToplevel()
@@ -373,37 +385,35 @@ def addTransaction(borlend):
     lbl1.pack()
     input1.pack()
 
+    query = "SELECT COUNT(*) FROM transaction"
+    tcount = cursor.execute(query,)
+    tcount = cursor.fetchone()[0]
+
     type = 0
     match borlend:
         case "Borrow":
             lbl2 = customtkinter.CTkLabel(add, text="Loaner ID")
             input2 = customtkinter.CTkEntry(add, width=350, height=20)
-            lbl1.pack()
-            input1.pack()
+            lbl2.pack()
+            input2.pack()
             type = 1000
         case "Lend":
             lbl2 = customtkinter.CTkLabel(add, text="Loanee ID")
             input2 = customtkinter.CTkEntry(add, width=350, height=20)
-            lbl1.pack()
-            input1.pack()
-            type = 1000
+            lbl2.pack()
+            input2.pack()
 
     lbl3 = customtkinter.CTkLabel(add, text="Amount")
     input3 = customtkinter.CTkEntry(add, width=350, height=20)
     lbl3.pack()
     input3.pack()
+    
 
-    lbl4 = customtkinter.CTkLabel(add, text="Middle Name")
-    input4 = customtkinter.CTkEntry(add, width=350, height=20)
-    lbl4.pack()
-    input4.pack()
+    gid = "NULL"
+    uid = "NULL"
 
-    lbl5 = customtkinter.CTkLabel(add, text="Last Name")
-    input5 = customtkinter.CTkEntry(add, width=350, height=20)
-    lbl5.pack()
-    input5.pack()
 
-    button = customtkinter.CTkButton(add, text="Add User", command=lambda: add_transaction("count of transactions", input1.get(), ))
+    button = customtkinter.CTkButton(add, text="Add Transaction", command=lambda: add_transaction(str(tcount+1), input1.get(), input2.get(), str(type), input3.get(), "NULL", str(gid), str(uid), add, borlend, type))
     button.pack(padx=10, pady=10)
 
 # frontend ---------------------------------------------------------------------------
@@ -442,15 +452,16 @@ def deleteTransactionLabels():
 
 def edit_transaction(id):
     #update transaction info using this query
-    query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, amount = %s, transaction_date = %s, payment_date = %s WHERE transaction_id = %s"
-    inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), amountInput.get(), tdateInput.get(), pdateInput.get(), id)
+    query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, amount = %s, transaction_date = %s WHERE transaction_id = %s"
+    inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), amountInput.get(), tdateInput.get(), id)
     cursor.execute(query, inputs)
     mariadb_connection.commit()
-    defaultDisplay()
+    defaultTransactionDisplay()
 
 
 def editTransactionNow(id, index):
     edit = customtkinter.CTkToplevel()
+    edit.geometry("1000x400")
     edit.grab_set()
 
     # get the tuple
@@ -464,13 +475,12 @@ def editTransactionNow(id, index):
     global loaneeInput
     global amountInput
     global tdateInput
-    global pdateInput
 
     #get values you want to be updated
-    tname = customtkinter.CTkLabel(edit, text="Loaner")
+    tname = customtkinter.CTkLabel(edit, text="Transaction Name")
     tname.pack()
     tnameInput = customtkinter.CTkEntry(edit, width=350, height=20)
-    tnameInput.insert(0, result[0][2])
+    tnameInput.insert(0, result[0][1])
     tnameInput.pack()
 
     loaner = customtkinter.CTkLabel(edit, text="Loaner")
@@ -485,23 +495,17 @@ def editTransactionNow(id, index):
     loaneeInput.insert(0, result[0][3])
     loaneeInput.pack()
 
-    amount = customtkinter.CTkLabel(edit, text="Last Name")
+    amount = customtkinter.CTkLabel(edit, text="Amount")
     amount.pack()
     amountInput = customtkinter.CTkEntry(edit, width=350, height=20)
     amountInput.insert(0, result[0][4])
     amountInput.pack()
 
-    tdate = customtkinter.CTkLabel(edit, text="Last Name")
+    tdate = customtkinter.CTkLabel(edit, text="Transaction Date")
     tdate.pack()
     tdateInput = customtkinter.CTkEntry(edit, width=350, height=20)
-    tdateInput.insert(0, result[0][4])
+    tdateInput.insert(0, result[0][5])
     tdateInput.pack()
-
-    pdate = customtkinter.CTkLabel(edit, text="Last Name")
-    pdate.pack()
-    pdateInput = customtkinter.CTkEntry(edit, width=350, height=20)
-    pdateInput.insert(0, result[0][4])
-    pdateInput.pack()
 
     button = customtkinter.CTkButton(edit, text="Submit Edit", command=lambda: edit_transaction(id))
     button.pack(padx=10, pady=10)
@@ -512,10 +516,11 @@ def update_transaction_scrollable_frame(result):
 
     for i, transaction in enumerate(result):
         num = 0
-        id_reference = str(result[0][0])
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", command=lambda:deleteTransaction(id_reference)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editTransactionNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
-
+        id_reference = str(transaction[0])
+        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+    
         for data in transaction:
             if num < 7:
                 search_label = customtkinter.CTkLabel(transactions, text = data)
@@ -524,25 +529,27 @@ def update_transaction_scrollable_frame(result):
 
 
 def searchTransactionNow():
-    selected = search_drop.get()
+    selected = tsearch_drop.get()
     query = ""  # Initialize the variable with a default value
+    result = []
 
+    searchVal = transactionSearch.get()
     if selected == "Search by..":
-        query = "SELECT * FROM transaction order by transaction_name"
-    # if selected == "First Name":
-    #     #search by first name
-    #     query = "SELECT * FROM user where first_name = %s"
-    # if selected == "Last Name":
-    #     #search by last name
-    #     query = "SELECT * FROM user where last_name = %s"
-    # if selected == "Middle Name":
-    #     #search by middle name
-    #     query = "SELECT * FROM user where middle_name = %s"
-    # if selected == "User ID":
-    #    #search by user ID
-    #    query = "SELECT * FROM user where user_id = %s"
+        query = "SELECT * FROM transaction ORDER BY transaction_name"
+    if selected == "Transaction Name":
+        #search by transaction name
+        search_transaction_name(searchVal)
+    if selected == "Friend ID":
+        #search by friend ID
+        search_transaction_friend(searchVal)
+    if selected == "Group ID":
+        #search by Group ID
+        search_transaction_group(searchVal)
     # else:
     #     result = "Select from drop down"
+
+    if (result != []):
+        update_transaction_scrollable_frame(result)
 
 def defaultTransactionDisplay():
     query = "SELECT * FROM transaction ORDER BY transaction_id"
@@ -605,14 +612,15 @@ history.grid(row=1, column=1, pady=5)
 transactionSearch = customtkinter.CTkEntry(tab1, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 transactionSearch.grid(row=1, column=3, pady=5, padx=5)
 
-id_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5, command = lambda: search_transaction_id(transactionSearch.get()))
+id_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5, command = searchTransactionNow)
 id_search.grid(row=1,column=4, padx=5)
 
-name_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by Name", corner_radius=5, command = lambda: search_transaction_name(transactionSearch.get()), fg_color="#4B4947")
-name_search.grid(row=1,column=5, pady=5, padx=5)
+custom_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Custom Search", corner_radius=5, fg_color="#4B4947", command= searchTransactionNow)
+custom_search.grid(row=1,column=5, pady=5, padx=5)
 
-friend_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by Friend ID", corner_radius=5, command = lambda: search_transaction_friend(transactionSearch.get()), fg_color="#4B4947")
-friend_search.grid(row=1,column=6, pady=5, padx=5)
+tsearch_drop = customtkinter.CTkComboBox(tab1, values=["Transaction Name", "Friend ID", "Group ID"])
+tsearch_drop.grid(row=1, column=6, sticky = tk.W, pady = 5, padx=5)
+tsearch_drop.set("Search by..")
 
 transactions = customtkinter.CTkScrollableFrame(tab1, width = 900, height = 350, fg_color="#4B4947", corner_radius=0)
 transactions.grid(row=3, column=1, columnspan=6, pady=(0,5))
@@ -620,19 +628,19 @@ transactions.grid(row=3, column=1, columnspan=6, pady=(0,5))
 transactionsLabel = customtkinter.CTkLabel(tab1, width=918, height= 30, fg_color = "#242424", text= "")
 transactionsLabel.grid(row=2, column=1, columnspan=6, pady= (10,0), padx = (0,0))
 tidLbl=customtkinter.CTkLabel(tab1, width=30, height= 20, fg_color = "#242424", text= "ID")
-tidLbl.place(x=155 , y =120)
+tidLbl.place(x=105 , y =120)
 tnameLbl=customtkinter.CTkLabel(tab1, width=50, height= 20, fg_color = "#242424", text= "Expense Name")
-tnameLbl.place(x=225 , y =120)
+tnameLbl.place(x=175 , y =120)
 loanerLbl=customtkinter.CTkLabel(tab1, width=50, height= 20, fg_color = "#242424", text= "Loaner")
-loanerLbl.place(x=346 , y =120)
+loanerLbl.place(x=296 , y =120)
 loaneeLbl=customtkinter.CTkLabel(tab1, width=50, height= 20, fg_color = "#242424", text= "Loanee")
-loaneeLbl.place(x=420 , y =120)
+loaneeLbl.place(x=370 , y =120)
 amtLbl=customtkinter.CTkLabel(tab1, width=50, height= 20, fg_color = "#242424", text= "Amount")
-amtLbl.place(x=500 , y =120)
+amtLbl.place(x=450 , y =120)
 tdateLbl=customtkinter.CTkLabel(tab1, width=50, height= 20, fg_color = "#242424", text= "Date Created")
-tdateLbl.place(x=582 , y =120)
+tdateLbl.place(x=532 , y =120)
 pdateLbl=customtkinter.CTkLabel(tab1, width=50, height= 20, fg_color = "#242424", text= "Payment Date")
-pdateLbl.place(x=683 , y =120)
+pdateLbl.place(x=633 , y =120)
 
 
 
