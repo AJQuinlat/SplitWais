@@ -607,7 +607,7 @@ history.grid(row=1, column=1, pady=5)
 transactionSearch = customtkinter.CTkEntry(tab1, width=300, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 transactionSearch.grid(row=1, column=3, pady=5, padx=5)
 
-id_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5, command = searchTransactionNow)
+id_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Search by ID", corner_radius=5, command = lambda: search_transaction_id(transactionSearch.get()))
 id_search.grid(row=1,column=4, padx=5)
 
 custom_search = customtkinter.CTkButton(tab1, width=75, height=30, text="Custom Search", corner_radius=5, fg_color="#4B4947", command= searchTransactionNow)
