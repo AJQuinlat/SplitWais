@@ -381,7 +381,24 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         add.destroy()
         defaultTransactionDisplay()
 
+        if (len(loaner)==5):
+            loan = "user_id"
+        else:
+            loan = "group_id"
+
         # update balance of user
+        if (borlend=="Borrow"):
+            cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=10000")
+            mariadb_connection.commit()
+            cursor.execute("UPDATE user SET balance=balance-"+amount+" where "+loan+"="+loaner)
+            mariadb_connection.commit()
+        elif (borlend=="Lend"):
+            cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=10000")
+            mariadb_connection.commit()
+            cursor.execute("UPDATE user SET balance=balance-"+amount+" where "+loan+"="+loanee)
+            mariadb_connection.commit()
+        displayBal()
+
         # update balance of group
         # update balance of users in the group
 
@@ -645,6 +662,7 @@ def settleTransaction(id):
     mariadb_connection.commit()
     defaultTransactionDisplay()
 
+
     # update balances of users
     # update balance of groups
     # update balance of users in the group
@@ -656,8 +674,17 @@ tab1.columnconfigure(index=7, weight=1)
 button_font = font.Font(size=20)
 tbalance = customtkinter.CTkLabel(tab1, text="Total Balance:", font=("Segoi UI", 20))
 tbalance.grid(row=0, column=1, pady=(30, 5))
-abalance = customtkinter.CTkLabel(tab1, text="Php" + str(curr_balance()), font=("Segoi UI", 20), text_color="#31A37C")
-abalance.grid(row=0, column=2, pady=(30, 5))
+
+abalance = None
+def displayBal():
+    global abalance
+    if abalance!=None:
+        abalance.destroy()
+    abalance = customtkinter.CTkLabel(tab1, text="Php" + str(curr_balance()), font=("Segoi UI", 20), text_color="#31A37C")
+    abalance.grid(row=0, column=2, pady=(30, 5))
+
+
+tab1.after_idle(displayBal)
 
 history = customtkinter.CTkButton(tab1, text="Show History", font=("Segoe UI", 15), command = defaultTransactionDisplay)
 history.grid(row=1, column=1, pady=5)
@@ -713,6 +740,7 @@ borrow.grid(row=4,column=5, pady=5, padx=5)
 lend = customtkinter.CTkButton(tab1, width=75, height=30, text="      Lend      ", corner_radius=5, fg_color="#4B4947", command= lambda: addTransaction("Lend"))
 lend.grid(row=4,column=6, pady=5, padx=5)
 
+tab1.after_idle(defaultTransactionDisplay)
 
 #---------------------------------------user tab ------------------------------------------------------
 global users
