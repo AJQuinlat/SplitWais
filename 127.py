@@ -381,6 +381,10 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         add.destroy()
         defaultTransactionDisplay()
 
+        # update balance of user
+        # update balance of group
+        # update balance of users in the group
+
 def addTransaction(borlend):
     add = customtkinter.CTkToplevel()
     add.grab_set()
@@ -461,18 +465,44 @@ def deleteTransactionLabels():
     for widget in transactions.winfo_children():
         widget.destroy()
 
+def validateDate(dte):
+    try:
+        if dte != dt.datetime.strptime(dte, "%Y-%m-%d").strftime('%Y-%m-%d'):
+            raise ValueError
+        return False
+    except ValueError:
+        return True
+
 def edit_transaction(id):
-    #update transaction info using this query
-    query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, amount = %s, transaction_date = %s WHERE transaction_id = %s"
-    inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), amountInput.get(), tdateInput.get(), id)
-    cursor.execute(query, inputs)
-    mariadb_connection.commit()
-    defaultTransactionDisplay()
+
+    # getting all the friend and group ids
+    cursor.execute("SELECT user_id FROM user")
+    lids = [str(x[0]) for x in cursor.fetchall()]
+    cursor.execute("SELECT group_id FROM `group`")
+    lids.extend([str(x[0]) for x in cursor.fetchall()])
+
+    # validation for edit inputs
+    if tnameInput.get() == "" or loanerInput.get() == "" or loanerInput.get() == "" or tdateInput.get()=="":
+        msg.showerror(title="Error", message="Error: Missing Field/s")
+    elif len(tnameInput.get())>21:
+        msg.showerror(title="Error", message="Error: Missing Field/s")
+    elif not loanerInput.get() in lids:
+        msg.showerror(title="Error", message="Error: Loaner ID does not exist")   
+    elif not loaneeInput.get() in lids:
+        msg.showerror(title="Error", message="Error: Loanee ID does not exist")
+    elif validateDate(tdateInput.get()):
+        msg.showerror(title="Error", message="Error: Incorrect data format, should be YYYY-MM-DD")
+    else:  
+        #update transaction info using this query
+        query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, transaction_date = %s WHERE transaction_id = %s"
+        inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), tdateInput.get(), id)
+        cursor.execute(query, inputs)
+        mariadb_connection.commit()
+        defaultTransactionDisplay()
 
 
 def editTransactionNow(id, index):
     edit = customtkinter.CTkToplevel()
-    edit.geometry("1000x400")
     edit.grab_set()
 
     # get the tuple
@@ -484,7 +514,6 @@ def editTransactionNow(id, index):
     global tnameInput
     global loanerInput
     global loaneeInput
-    global amountInput
     global tdateInput
 
     #get values you want to be updated
@@ -506,12 +535,6 @@ def editTransactionNow(id, index):
     loaneeInput.insert(0, result[0][3])
     loaneeInput.pack()
 
-    amount = customtkinter.CTkLabel(edit, text="Amount")
-    amount.pack()
-    amountInput = customtkinter.CTkEntry(edit, width=350, height=20)
-    amountInput.insert(0, result[0][4])
-    amountInput.pack()
-
     tdate = customtkinter.CTkLabel(edit, text="Transaction Date")
     tdate.pack()
     tdateInput = customtkinter.CTkEntry(edit, width=350, height=20)
@@ -528,8 +551,12 @@ def update_transaction_scrollable_frame(result):
     for i, transaction in enumerate(result):
         num = 0
         id_reference = str(transaction[0])
-        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
+        if transaction[6] != None:
+            ste = "normal"
+        else:
+            ste="disabled"
+        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=ste, command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
         customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
     
         for data in transaction:
@@ -608,6 +635,21 @@ def displayByMonth(month):
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
+
+def settleTransaction(id):
+    # updates transaction and adds payment date
+    curr = dt.datetime.now()
+    curdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
+    query = "UPDATE transaction SET payment_date=str_to_date('"+curdate+"', '%m/%d/%Y') WHERE transaction_id =" + id
+    cursor.execute(query)
+    mariadb_connection.commit()
+    defaultTransactionDisplay()
+
+    # update balances of users
+    # update balance of groups
+    # update balance of users in the group
+
+
 
 tab1.columnconfigure(index=0, weight=1)
 tab1.columnconfigure(index=7, weight=1)
