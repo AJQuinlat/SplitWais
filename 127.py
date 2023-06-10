@@ -20,7 +20,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="MariaDB", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -125,23 +125,36 @@ mariadb_connection.commit()
 
 ### FEATURES ------------------------------------------------------------------------
 # add user function
-def add_user(user_id, balance, fname, mname, lname):
+def add_user(user_id, fname, mname, lname):
+
+    #set deafult balance
+    balance = "0.00"
+
+    #search if id is existing
+    searchQuery = "SELECT COUNT(*) FROM  user where user_id = %s"
+    idsearch = (user_id,)
+    result = cursor.execute(searchQuery, idsearch)
+    result = cursor.fetchall()
 
     if len(user_id) != 5:
         msg.showerror(title="Error", message="Error: Length of User ID should be 5")
     else:
-        fname="'"+fname+"'"
-        mname="'"+mname+"'"
-        lname="'"+lname+"'"
-        sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
-        cursor.execute(sql_statement)
-        mariadb_connection.commit()
-        input1.delete(0,"end")
-        input2.delete(0,"end")
-        input3.delete(0,"end")
-        input4.delete(0,"end")
-        input5.delete(0,"end")
-        defaultDisplay()
+        #if there is no same existing id 
+        if result[0][0] == 0:
+            fname="'"+fname+"'"
+            mname="'"+mname+"'"
+            lname="'"+lname+"'"
+            sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
+            cursor.execute(sql_statement)
+            mariadb_connection.commit()
+            input1.delete(0,"end")
+            input2.delete(0,"end")
+            input3.delete(0,"end")
+            input4.delete(0,"end")
+            msg.showinfo("User added", "User has been added successfully")
+            defaultDisplay()
+        else:
+            msg.showerror(title="Error", message="Error: User ID is already in used.") 
 
 # add transaction function
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
@@ -302,34 +315,28 @@ def add1():
     global input2
     global input3
     global input4
-    global input5
 
     lbl1 = customtkinter.CTkLabel(add, text="User ID")
     input1 = customtkinter.CTkEntry(add, width=350, height=20)
     lbl1.pack()
     input1.pack()
 
-    lbl2 = customtkinter.CTkLabel(add, text="Balance")
+    lbl2 = customtkinter.CTkLabel(add, text="First Name")
     input2 = customtkinter.CTkEntry(add, width=350, height=20)
     lbl2.pack()
     input2.pack()
 
-    lbl3 = customtkinter.CTkLabel(add, text="First Name")
+    lbl3 = customtkinter.CTkLabel(add, text="Middle Name")
     input3 = customtkinter.CTkEntry(add, width=350, height=20)
     lbl3.pack()
     input3.pack()
 
-    lbl4 = customtkinter.CTkLabel(add, text="Middle Name")
+    lbl4 = customtkinter.CTkLabel(add, text="Last Name")
     input4 = customtkinter.CTkEntry(add, width=350, height=20)
     lbl4.pack()
     input4.pack()
 
-    lbl5 = customtkinter.CTkLabel(add, text="Last Name")
-    input5 = customtkinter.CTkEntry(add, width=350, height=20)
-    lbl5.pack()
-    input5.pack()
-
-    button = customtkinter.CTkButton(add, text="Add User", command=lambda: add_user(input1.get(), input2.get(), input3.get(), input4.get(), input5.get()))
+    button = customtkinter.CTkButton(add, text="Add User", command=lambda: add_user(input1.get(), input2.get(), input3.get(), input4.get()))
     button.pack(padx=10, pady=10)
 
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, borlend, type):
@@ -673,6 +680,7 @@ def edit_user(id):
     inputs = (fnameInput.get(), mnameInput.get(), lnameInput.get(), id)
     cursor.execute(query, inputs)
     mariadb_connection.commit()
+    msg.showinfo("Update Success", "User information has been updated.")
     defaultDisplay()
 
 def editNow(id, index):
@@ -731,7 +739,8 @@ def searchNow():
     query = ""  # Initialize the variable with a default value
 
     if selected == "Search by..":
-        query = "SELECT * FROM user order by first_name"
+        #since 10000 is the id of the user, it cant be shown in friends list
+        query = "SELECT * FROM user where user_id != 10000 order by first_name"
     if selected == "Search by..":
         query = "SELECT * FROM user order by first_name"
     if selected == "First Name":
@@ -767,17 +776,33 @@ def searchNow():
             result = "Record Not Found..."
 
 def defaultDisplay():
-    query = "SELECT * FROM user ORDER BY first_name"
+    query = "SELECT * FROM user WHERE user_id != 10000 ORDER BY first_name"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_scrollable_frame(result)
 
 def deleteUser(id):
-    query = "DELETE FROM user WHERE user_id = %s"
-    toDel = (id, )
-    cursor.execute(query, toDel)
-    mariadb_connection.commit()
-    defaultDisplay()
+    checkBal = "SELECT Balance FROM user WHERE user_id = %s"
+    check = (id,)
+    checkresult = cursor.execute(checkBal, check)
+    checkresult = cursor.fetchall()
+
+    #if the user/friend does not have an existing balance then it can be deleted
+    if checkresult[0][0] == 0.00:
+        #delete from has table first
+        hasQuery = "DELETE FROM has WHERE user_id = %s" 
+        deleteHas = (id,)
+        cursor.execute(hasQuery, deleteHas)
+        mariadb_connection.commit()
+        #delete from users
+        query = "DELETE FROM user WHERE user_id = %s"
+        toDel = (id, )
+        cursor.execute(query, toDel)
+        mariadb_connection.commit()
+        msg.showinfo("Delete Success", "User has been deleted successfully")
+        defaultDisplay()
+    else:
+        msg.showerror(title="Error", message="Error: Cannot be deleted! User still has unsettled transaction")
 
 def viewFriendOutbal():
     query = "select * from USER where Balance > 0 and user_id != 10000 order by balance desc"
