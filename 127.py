@@ -316,15 +316,15 @@ def add1():
     button.pack(padx=10, pady=10)
 
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, borlend, type):
-    type = input2.get()
-    if (len(input2.get())==5):
+    type = input3.get()
+    if (len(input3.get())==5):
         if (borlend=="Borrow"):
             uid = 10000
         else:
             loaner = 10000
             uid = type
             loanee = uid            
-    elif (len(input2.get())==4):
+    elif (len(input3.get())==4):
         if (borlend=="Borrow"):
             uid = 10000
         else:
@@ -353,8 +353,8 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         msg.showerror(title="Error", message="Error: Length of Transaction ID should be less than 6")
     elif not input3.get() in lids:
         msg.showerror(title="Error", message="Error: Loaner/Loanee ID does not exist")        
-    elif len(input3.get()) != 5:
-        msg.showerror(title="Error", message="Error: Length of Loaner/Loanee ID should be 5")
+    elif not(len(input3.get()) == 5 or len(input3.get()) == 4):
+        msg.showerror(title="Error", message="Error: Length of Loaner/Loanee ID should be 4 or 5")
     elif len(tname)>20:
         msg.showerror(title="Error", message="Error: Length of Transaction Name should be less than 21")  
     elif not amount.isnumeric():
@@ -381,25 +381,33 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         add.destroy()
         defaultTransactionDisplay()
 
-        if (len(loaner)==5):
-            loan = "user_id"
-        else:
-            loan = "group_id"
+
 
         # update balance of user
         if (borlend=="Borrow"):
+            if (len(loaner)==5):
+                upid = "user_id"
+                tbl = "user"
+            else:
+                upid = "group_id"
+                tbl = "`group`"
             cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=10000")
             mariadb_connection.commit()
-            cursor.execute("UPDATE user SET balance=balance-"+amount+" where "+loan+"="+loaner)
+            cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
             mariadb_connection.commit()
         elif (borlend=="Lend"):
+            if (len(loanee)==5):
+                upid = "user_id"
+                tbl = "user"
+            else:
+                upid = "group_id"
+                tbl = "`group`"
             cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=10000")
             mariadb_connection.commit()
-            cursor.execute("UPDATE user SET balance=balance-"+amount+" where "+loan+"="+loanee)
+            cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
             mariadb_connection.commit()
         displayBal()
 
-        # update balance of group
         # update balance of users in the group
 
 def addTransaction(borlend):
@@ -428,7 +436,7 @@ def addTransaction(borlend):
             input3 = customtkinter.CTkEntry(add, width=350, height=20)
             lbl3.pack()
             input3.pack()
-            type = 1000
+            type = 10000
         case "Lend":
             lbl3 = customtkinter.CTkLabel(add, text="Loanee ID")
             input3 = customtkinter.CTkEntry(add, width=350, height=20)
