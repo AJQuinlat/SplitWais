@@ -173,11 +173,6 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
     cursor.execute(sql_statement)
     mariadb_connection.commit()
     
-# add group function
-def add_group(gid, gname, mem_no, balance):
-    sql_statement = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
-    cursor.execute(sql_statement)
-    mariadb_connection.commit()
 
 # delete user by id
 def del_user(uid):
@@ -958,15 +953,17 @@ addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady= (10,0))
 
 global groups
 
-def editGroup(id):
+def editGroup(id, window):
     #update group info using this query
     query = "UPDATE `group` SET group_name = %s WHERE group_id = %s"
     inputs = (groupNameInput.get(), id)
     cursor.execute(query, inputs)
     mariadb_connection.commit()
     defaultGroupDisplay()
+    popup("Group edited", "successfully")
+    window.destroy()
 
-def editGroupNow(id, index):
+def editGroupNow(id):
     edit = customtkinter.CTkToplevel()
     edit.grab_set()
 
@@ -985,7 +982,7 @@ def editGroupNow(id, index):
     groupNameInput.insert(0, result[0][1])
     groupNameInput.pack()
 
-    button = customtkinter.CTkButton(edit, text="Submit Edit", command=lambda: editGroup(id))
+    button = customtkinter.CTkButton(edit, text="Submit Edit", command=lambda: editGroup(id, edit))
     button.pack(padx=10, pady=10)
 
 def deleteGroup(id):
@@ -993,6 +990,7 @@ def deleteGroup(id):
     toDel = (id, )
     cursor.execute(query, toDel)
     mariadb_connection.commit()
+    popup("Group deleted", "successfully")
     defaultGroupDisplay()
 
 def deleteGroupLabels():
@@ -1002,12 +1000,13 @@ def deleteGroupLabels():
 def update_group_scrollable_frame(result):
     #delete existing labels
     deleteGroupLabels()
-
+    
     for i, group in enumerate(result):
         num = 0 
         id_reference = str(group[0])
-        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:deleteGroup(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
-        customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda:editGroupNow(id_reference, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:editGroupNow(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        customtkinter.CTkButton(groups, text="Show members", width=50, fg_color="#2B2B2B", command=lambda g =id_reference:showMembers(g)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in group:
             search_label = customtkinter.CTkLabel(groups, text = data)
@@ -1021,7 +1020,7 @@ def defaultGroupDisplay():
     update_group_scrollable_frame(result)
     
 def showGroupWithOutstandingBalance():
-    query = "SELECT * FROM `group` where balance > 0 ORDER BY balance"
+    query = "SELECT * FROM `group` where balance > 0 ORDER BY balance desc"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_group_scrollable_frame(result)
@@ -1065,9 +1064,80 @@ def addNewGroup():
     newGroupName.pack()
 
     # member parameter is set to 1 initially (self only)
-    button = customtkinter.CTkButton(add, text="Add Group", command=lambda: add_group(newGroupID.get(), newGroupName.get(), str(1), str(0)))
+    button = customtkinter.CTkButton(add, text="Add Group", command=lambda: addGroup(newGroupID.get(), newGroupName.get(), str(1), str(0), add))
+    button.pack(padx=10, pady=10)
+    
+# add group function
+def addGroup(gid, gname, mem_no, balance, window):
+    insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
+    cursor.execute(insertGroup)
+    insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
+    cursor.execute(insertHas)
+    mariadb_connection.commit()
+    defaultGroupDisplay()
+    popup("Group added", "successfully")
+    window.destroy()
+    
+def showMembers(groupId):
+    show = customtkinter.CTkToplevel()
+    show.grab_set()
+
+    query = "SELECT u.first_name, u.last_name FROM `has` natural join user u where group_id = " + str(groupId) + " ORDER BY u.first_name"
+    result = cursor.execute(query)
+    result = cursor.fetchall()
+    # update_group_scrollable_frame(result)
+
+    label = customtkinter.CTkLabel(show, text="List of Members", font=("Segoe UI", 15, "bold"))
+    label.pack()
+
+    for member in result:
+        customtkinter.CTkLabel(show, text=member[0] + " " + member[1]).pack()
+        
+    customtkinter.CTkButton(show, text="Add member", width=50, fg_color="#4B4947", command=lambda: addMember(groupId, show)).pack(pady=5, padx=5)
+    
+def addMember(groupId, window):
+    window.destroy()
+    add = customtkinter.CTkToplevel()
+    add.grab_set()
+
+    global memberId
+
+    lbl1 = customtkinter.CTkLabel(add, text="Input Friend ID")
+    memberId = customtkinter.CTkEntry(add, width=350, height=20)
+    lbl1.pack()
+    memberId.pack()
+
+    # member parameter is set to 1 initially (self only)
+    button = customtkinter.CTkButton(add, text="Confirm", command=lambda: confirmAddMember(groupId, memberId.get(), add))
     button.pack(padx=10, pady=10)
 
+def confirmAddMember(groupId, memberId, window): # need validation
+    sql_statement = "INSERT INTO `has` VALUES(" + str(memberId) + ", " + str(groupId) + ");"
+    cursor.execute(sql_statement)
+    mariadb_connection.commit()
+    popup("Member added", "successfully")
+    window.destroy()
+    showMembers(groupId)
+    updateMemberCount(groupId)
+ 
+def updateMemberCount(groupId):
+    sql_statement = "UPDATE `group` SET number_of_members=(SELECT COUNT(user_id) FROM `has` WHERE group_id=" + str(groupId) + ") WHERE group_id=" + str(groupId)
+    cursor.execute(sql_statement)
+    mariadb_connection.commit()
+    defaultGroupDisplay()
+
+def popup(funx, status):
+    pop = customtkinter.CTkToplevel()
+    pop.wm_overrideredirect(True)
+    pop.geometry("+500+1100")
+    
+    def destroy_popup():
+        if pop.winfo_exists():
+            pop.destroy()
+    
+    customtkinter.CTkLabel(pop, text=f"{funx} {status}!").pack()
+    pop.after(3000, destroy_popup)
+    
 tab3.columnconfigure(index=0, weight=1)
 tab3.columnconfigure(index=7, weight=1)
 button_font = font.Font(size=20)
@@ -1087,19 +1157,22 @@ searchByGroupNameBtn = customtkinter.CTkButton(tab3, width=75, height=30, text="
 searchByGroupNameBtn.grid(row=1,column=3, pady=5, padx=5)
 
 # CREATES THE TABLE
-groups = customtkinter.CTkScrollableFrame(tab3, width = 550, height = 350, fg_color="#4B4947", corner_radius=0)
+groups = customtkinter.CTkScrollableFrame(tab3, width = 650, height = 350, fg_color="#4B4947", corner_radius=0)
 groups.grid(row=3, column=1, columnspan=6, pady=(0,5))
 
-groupLabel = customtkinter.CTkLabel(tab3, width=570, height= 30, fg_color = "#242424", text= "")
+# shows all groups at the start
+groups.after_idle(defaultGroupDisplay)
+
+groupLabel = customtkinter.CTkLabel(tab3, width=668, height= 30, fg_color = "#242424", text= "")
 groupLabel.grid(row=2, column=1, columnspan=6, pady= (10,0), padx = (0,0))
 groupIDLabel=customtkinter.CTkLabel(tab3, width=30, height= 20, fg_color = "#242424", text= "Group ID")
-groupIDLabel.place(x=275 , y =120)
+groupIDLabel.place(x=225 , y =120)
 groupNameLabel=customtkinter.CTkLabel(tab3, width=50, height= 20, fg_color = "#242424", text= "Group Name")
-groupNameLabel.place(x=375 , y =120)
+groupNameLabel.place(x=325 , y =120)
 memberNumberLabel=customtkinter.CTkLabel(tab3, width=50, height= 20, fg_color = "#242424", text= "Member Count")
-memberNumberLabel.place(x=475 , y =120)
+memberNumberLabel.place(x=425 , y =120)
 groupBalanceLabel=customtkinter.CTkLabel(tab3, width=50, height= 20, fg_color = "#242424", text= "Balance")
-groupBalanceLabel.place(x=575 , y =120)
+groupBalanceLabel.place(x=525 , y =120)
 
 
 # add new group
