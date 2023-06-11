@@ -887,8 +887,8 @@ def searchNow():
     query = ""  # Initialize the variable with a default value
 
     if selected == "Search by..":
-        #since 10000 is the id of the user, it cant be shown in friends list
-        query = "SELECT * FROM user where user_id != 10000 order by first_name"
+        #since 11111 is the id of the user, it cant be shown in friends list
+        query = "SELECT * FROM user where user_id != 11111 order by first_name"
     if selected == "Search by..":
         query = "SELECT * FROM user order by first_name"
     if selected == "First Name":
@@ -924,7 +924,7 @@ def searchNow():
             result = "Record Not Found..."
 
 def defaultDisplay():
-    query = "SELECT * FROM user WHERE user_id != 10000 ORDER BY first_name"
+    query = "SELECT * FROM user WHERE user_id != 11111 ORDER BY first_name"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_scrollable_frame(result)
@@ -953,7 +953,7 @@ def deleteUser(id):
         msg.showerror(title="Error", message="Error: Cannot be deleted! User still has unsettled transaction")
 
 def viewFriendOutbal():
-    query = "select * from USER where Balance > 0 and user_id != 10000 order by balance desc"
+    query = "select * from USER where Balance > 0 and user_id != 11111 order by balance desc"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_scrollable_frame(result)
@@ -1153,7 +1153,7 @@ def showMembers(groupId):
     customtkinter.CTkButton(show, text="Add member", width=50, fg_color="#4B4947", command=lambda: addMember(groupId, show)).pack(pady=5, padx=5)
     
 def addMember(groupId, window):
-    window.destroy()
+    window.destroy
     add = customtkinter.CTkToplevel()
     add.grab_set()
 
@@ -1173,7 +1173,7 @@ def confirmAddMember(groupId, memberId, window): # need validation
     cursor.execute(sql_statement)
     mariadb_connection.commit()
     popup("Member added", "successfully")
-    window.destroy()
+    window.destroy
     showMembers(groupId)
     updateMemberCount(groupId)
  
