@@ -1130,7 +1130,7 @@ def addNewGroup():
 def addGroup(gid, gname, mem_no, balance, window):
     insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
     cursor.execute(insertGroup)
-    insertHas = "INSERT INTO `has` VALUES(" + str(10000) + ", " + gid + ");"
+    insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
     cursor.execute(insertHas)
     mariadb_connection.commit()
     defaultGroupDisplay()
