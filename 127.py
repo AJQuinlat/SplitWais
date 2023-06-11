@@ -20,7 +20,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="MariaDB", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -1128,7 +1128,7 @@ def addNewGroup():
 def addGroup(gid, gname, mem_no, balance, window):
     insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
     cursor.execute(insertGroup)
-    insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
+    insertHas = "INSERT INTO `has` VALUES(" + str(10000) + ", " + gid + ");"
     cursor.execute(insertHas)
     mariadb_connection.commit()
     defaultGroupDisplay()
