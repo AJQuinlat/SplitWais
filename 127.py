@@ -20,7 +20,7 @@ def table(lst, title):
 # backend ------------------------------------------------------------------------------------
 
 # signing in to mariadb
-mariadb_connection = mariadb.connect(user="root", password="addymae10", host="localhost", port="3306")
+mariadb_connection = mariadb.connect(user="root", password="jovelyn", host="localhost", port="3306")
 # creating cursor for mysql queries
 cursor = mariadb_connection.cursor()
 
@@ -253,7 +253,7 @@ def view_month(month):
 def search_transaction_friend(fid):
     result=[]
     if (len(fid)==5):
-        query = "SELECT * FROM transaction WHERE (user_id=" + str(fid) + " and loaner=10000) or (user_id=10000 and loaner=" + str(fid) + ")"
+        query = "SELECT * FROM transaction WHERE (user_id=" + str(fid) + " and loaner=11111) or (user_id=11111 and loaner=" + str(fid) + ")"
         result = cursor.execute(query,)
         result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
@@ -262,20 +262,20 @@ def search_transaction_friend(fid):
 def search_transaction_group(gid):
     result=[]
     if (len(gid)==4):
-        query = "SELECT * FROM transaction WHERE (group_id=" + str(gid) + " and loaner=10000) or (user_id=10000 and loaner=" + str(gid) + ")"
+        query = "SELECT * FROM transaction WHERE (group_id=" + str(gid) + " and loaner=11111) or (user_id=11111 and loaner=" + str(gid) + ")"
         result = cursor.execute(query,)
         result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
 
 # view current balance from all expenses
 def curr_balance():
-    sqlstatement = "select balance from USER where user_id = 10000"
+    sqlstatement = "select balance from USER where user_id = 11111"
     cursor.execute(sqlstatement)
     return(cursor.fetchone()[0])
 
 # view all friends with outstanding balance;
 def view_friend_outbalance():
-    sqlstatement = "select * from USER where Balance > 0 and user_id != 10000"
+    sqlstatement = "select * from USER where Balance > 0 and user_id != 11111"
     cursor.execute(sqlstatement)
     for x in cursor:
         print(x)
@@ -338,16 +338,16 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
     type = input3.get()
     if (len(input3.get())==5):
         if (borlend=="Borrow"):
-            uid = 10000
+            uid = 11111
         else:
-            loaner = 10000
+            loaner = 11111
             uid = type
             loanee = uid            
     elif (len(input3.get())==4):
         if (borlend=="Borrow"):
-            uid = 10000
+            uid = 11111
         else:
-            loaner = 10000
+            loaner = 11111
             uid = type
             loanee = uid
     
@@ -356,7 +356,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
     tids = [str(x[0]) for x in cursor.fetchall()]
 
     # getting all the friend and group ids
-    cursor.execute("SELECT user_id FROM user WHERE user_id != 10000")
+    cursor.execute("SELECT user_id FROM user WHERE user_id != 11111")
     lids = [str(x[0]) for x in cursor.fetchall()]
     cursor.execute("SELECT group_id FROM `group`")
     lids.extend([str(x[0]) for x in cursor.fetchall()])
@@ -410,7 +410,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             else:
                 upid = "group_id"
                 tbl = "`group`"
-            cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=10000")
+            cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
             mariadb_connection.commit()
@@ -421,7 +421,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             else:
                 upid = "group_id"
                 tbl = "`group`"
-            cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=10000")
+            cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
             mariadb_connection.commit()
@@ -457,7 +457,7 @@ def addTransaction(borlend):
             input3 = customtkinter.CTkEntry(add, width=350, height=20)
             lbl3.pack()
             input3.pack()
-            type = 10000
+            type = 11111
         case "Lend":
             lbl3 = customtkinter.CTkLabel(add, text="Loanee ID")
             input3 = customtkinter.CTkEntry(add, width=350, height=20)
@@ -707,9 +707,9 @@ def settleTransaction(id):
     amount = str(trans[4])
 
     
-    if (loaner=="10000"):
+    if (loaner=="11111"):
         borlend = "Lend"
-    elif (loanee=="10000"):
+    elif (loanee=="11111"):
         borlend = "Borrow"
 
     # update balance of user
@@ -720,7 +720,7 @@ def settleTransaction(id):
         else:
             upid = "group_id"
             tbl = "`group`"
-        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=10000")
+        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loaner)
         mariadb_connection.commit()
@@ -731,7 +731,7 @@ def settleTransaction(id):
         else:
             upid = "group_id"
             tbl = "`group`"
-        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=10000")
+        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loanee)
         mariadb_connection.commit()
@@ -887,8 +887,8 @@ def searchNow():
     query = ""  # Initialize the variable with a default value
 
     if selected == "Search by..":
-        #since 10000 is the id of the user, it cant be shown in friends list
-        query = "SELECT * FROM user where user_id != 10000 order by first_name"
+        #since 11111 is the id of the user, it cant be shown in friends list
+        query = "SELECT * FROM user where user_id != 11111 order by first_name"
     if selected == "Search by..":
         query = "SELECT * FROM user order by first_name"
     if selected == "First Name":
@@ -924,7 +924,7 @@ def searchNow():
             result = "Record Not Found..."
 
 def defaultDisplay():
-    query = "SELECT * FROM user WHERE user_id != 10000 ORDER BY first_name"
+    query = "SELECT * FROM user WHERE user_id != 11111 ORDER BY first_name"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_scrollable_frame(result)
@@ -953,7 +953,7 @@ def deleteUser(id):
         msg.showerror(title="Error", message="Error: Cannot be deleted! User still has unsettled transaction")
 
 def viewFriendOutbal():
-    query = "select * from USER where Balance > 0 and user_id != 10000 order by balance desc"
+    query = "select * from USER where Balance > 0 and user_id != 11111 order by balance desc"
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_scrollable_frame(result)
@@ -1128,7 +1128,7 @@ def addNewGroup():
 def addGroup(gid, gname, mem_no, balance, window):
     insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
     cursor.execute(insertGroup)
-    insertHas = "INSERT INTO `has` VALUES(" + str(10000) + ", " + gid + ");"
+    insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
     cursor.execute(insertHas)
     mariadb_connection.commit()
     defaultGroupDisplay()
