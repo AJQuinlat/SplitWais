@@ -1042,15 +1042,22 @@ def editGroupNow(id):
     button.pack(padx=10, pady=10)
 
 def deleteGroup(id):
-    query = "DELETE FROM `group` WHERE group_id = %s"
-    toDel = (id, )
-    cursor.execute(query, toDel)
-    deleteHas = "DELETE FROM `has` where group_id=" + str(id)
-    cursor.execute(deleteHas)
-    mariadb_connection.commit()
-    # popup("Group deleted", "successfully")
-    msg.showinfo("Delete Group Success", "Group has been deleted successfully!")
-    defaultGroupDisplay()
+    checkBal = f"select balance from `group` where group_id = {id}"
+    balance = cursor.execute(checkBal)
+    balance = cursor.fetchall()
+    
+    if (balance[0][0] == 0):
+        query = "DELETE FROM `group` WHERE group_id = %s"
+        toDel = (id, )
+        cursor.execute(query, toDel)
+        deleteHas = "DELETE FROM `has` where group_id=" + str(id)
+        cursor.execute(deleteHas)
+        mariadb_connection.commit()
+        # popup("Group deleted", "successfully")
+        msg.showinfo("Delete Group Success", "Group has been deleted successfully!")
+        defaultGroupDisplay()
+    else:
+        msg.showerror(title="Error", message="Group cannot be deleted! Group still has unsettled transaction.")
 
 def deleteGroupLabels():
     for widget in groups.winfo_children():
@@ -1063,7 +1070,12 @@ def update_group_scrollable_frame(result):
     for i, group in enumerate(result):
         num = 0 
         id_reference = str(group[0])
-        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        if group[3] == 0:
+            btnState = "normal"
+        else:
+            btnState = "disabled"
+        
+        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", state=btnState, command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:editGroupNow(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Show members", width=50, fg_color="#2B2B2B", command=lambda g =id_reference:showMembers(g)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
@@ -1128,14 +1140,24 @@ def addNewGroup():
     
 # add group function
 def addGroup(gid, gname, mem_no, balance, window):
-    insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
-    cursor.execute(insertGroup)
-    insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
-    cursor.execute(insertHas)
-    mariadb_connection.commit()
-    defaultGroupDisplay()
-    # popup("Group added", "successfully")
-    msg.showinfo("Add Group Success", "Group has been added successfully!")
+    checkGroup = f"select group_id from `group` where group_id={gid}"
+    resultGroup = cursor.execute(checkGroup)
+    resultGroup = cursor.fetchall()
+    
+    if (resultGroup == [] and len(gid) == 4):
+        insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
+        cursor.execute(insertGroup)
+        insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
+        cursor.execute(insertHas)
+        mariadb_connection.commit()
+        defaultGroupDisplay()
+        # popup("Group added", "successfully")
+        msg.showinfo("Add Group Success", "Group has been added successfully!")
+    elif (len(gid) != 4):
+        msg.showerror(title="Error", message="Group cannot be added! Group ID length should be 4.")
+    else:
+        msg.showerror(title="Error", message="Group cannot be added! Group already exists.")
+        
     window.destroy()
     
 def showMembers(groupId):
@@ -1172,14 +1194,23 @@ def addMember(groupId, window):
     button.pack(padx=10, pady=10)
 
 def confirmAddMember(groupId, memberId, window): # need validation
-    sql_statement = "INSERT INTO `has` VALUES(" + str(memberId) + ", " + str(groupId) + ");"
-    cursor.execute(sql_statement)
-    mariadb_connection.commit()
-    # popup("Member added", "successfully")
-    msg.showinfo("Add Member Success", "Member has been added successfully!")
-    window.destroy()
-    showMembers(groupId)
-    updateMemberCount(groupId)
+    checkMember = f"select user_id from `has` where user_id={memberId} and group_id={groupId}"
+    memberResult = cursor.execute(checkMember)
+    memberResult = cursor.fetchall()
+    
+    if (memberResult == [] and len(memberId) == 5):
+        sql_statement = "INSERT INTO `has` VALUES(" + str(memberId) + ", " + str(groupId) + ");"
+        cursor.execute(sql_statement)
+        mariadb_connection.commit()
+        # popup("Member added", "successfully")
+        msg.showinfo("Add Member Success", "Member has been added successfully!")
+        window.destroy()
+        showMembers(groupId)
+        updateMemberCount(groupId)
+    elif (len(memberId) != 5):
+        msg.showerror(title="Error", message="Member cannot be added! Member ID length should be 5.")
+    else:
+        msg.showerror(title="Error", message="Member cannot be added! Member already in the group.")
  
 def updateMemberCount(groupId):
     sql_statement = "UPDATE `group` SET number_of_members=(SELECT COUNT(user_id) FROM `has` WHERE group_id=" + str(groupId) + ") WHERE group_id=" + str(groupId)
