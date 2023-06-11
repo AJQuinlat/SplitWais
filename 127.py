@@ -865,6 +865,8 @@ def deleteGroup(id):
     query = "DELETE FROM `group` WHERE group_id = %s"
     toDel = (id, )
     cursor.execute(query, toDel)
+    deleteHas = "DELETE FROM `has` where group_id=" + str(id)
+    cursor.execute(deleteHas)
     mariadb_connection.commit()
     popup("Group deleted", "successfully")
     defaultGroupDisplay()
