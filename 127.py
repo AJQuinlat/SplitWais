@@ -740,7 +740,11 @@ def settleTransaction(id):
 
     # update balance of users in the group
 
-
+def showUnsettled():
+    query = "SELECT * FROM transaction WHERE payment_date IS NULL"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_transaction_scrollable_frame(result)
 
 tab1.columnconfigure(index=0, weight=1)
 tab1.columnconfigure(index=7, weight=1)
@@ -809,9 +813,11 @@ monthFilter.set("Month")
 
 
 borrow = customtkinter.CTkButton(tab1, width=75, height=30, text="     Borrow     ", corner_radius=5, command= lambda: addTransaction("Borrow"))
-borrow.grid(row=4,column=5, pady=5, padx=5)
+borrow.grid(row=4,column=4, pady=5, padx=5)
 lend = customtkinter.CTkButton(tab1, width=75, height=30, text="      Lend      ", corner_radius=5, fg_color="#4B4947", command= lambda: addTransaction("Lend"))
-lend.grid(row=4,column=6, pady=5, padx=5)
+lend.grid(row=4,column=5, pady=5, padx=5)
+unsettled = customtkinter.CTkButton(tab1, width=75, height=30, text="Show Unsettled", corner_radius=5, fg_color="#4B4947", command= showUnsettled)
+unsettled.grid(row=4,column=6, pady=5, padx=5)
 
 tab1.after_idle(defaultTransactionDisplay)
 
