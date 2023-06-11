@@ -1007,8 +1007,12 @@ def popup(funx, status):
     pop.wm_overrideredirect(True)
     pop.geometry("+500+1100")
     
+    def destroy_popup():
+        if pop.winfo_exists():
+            pop.destroy()
+    
     customtkinter.CTkLabel(pop, text=f"{funx} {status}!").pack()
-    pop.after(3000, pop.destroy)
+    pop.after(3000, destroy_popup)
     
 tab3.columnconfigure(index=0, weight=1)
 tab3.columnconfigure(index=7, weight=1)
