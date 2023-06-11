@@ -335,15 +335,15 @@ def add1():
     button.pack(padx=10, pady=10)
 
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, borlend, type):
-    type = input2.get()
-    if (len(input2.get())==5):
+    type = input3.get()
+    if (len(input3.get())==5):
         if (borlend=="Borrow"):
             uid = 10000
         else:
             loaner = 10000
             uid = type
             loanee = uid            
-    elif (len(input2.get())==4):
+    elif (len(input3.get())==4):
         if (borlend=="Borrow"):
             uid = 10000
         else:
@@ -372,8 +372,8 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         msg.showerror(title="Error", message="Error: Length of Transaction ID should be less than 6")
     elif not input3.get() in lids:
         msg.showerror(title="Error", message="Error: Loaner/Loanee ID does not exist")        
-    elif len(input3.get()) != 5:
-        msg.showerror(title="Error", message="Error: Length of Loaner/Loanee ID should be 5")
+    elif not(len(input3.get()) == 5 or len(input3.get()) == 4):
+        msg.showerror(title="Error", message="Error: Length of Loaner/Loanee ID should be 4 or 5")
     elif len(tname)>20:
         msg.showerror(title="Error", message="Error: Length of Transaction Name should be less than 21")  
     elif not amount.isnumeric():
@@ -400,30 +400,40 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         add.destroy()
         defaultTransactionDisplay()
 
-        if (len(loaner)==5):
-            loan = "user_id"
-        else:
-            loan = "group_id"
+
 
         # update balance of user
         if (borlend=="Borrow"):
+            if (len(loaner)==5):
+                upid = "user_id"
+                tbl = "user"
+            else:
+                upid = "group_id"
+                tbl = "`group`"
             cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=10000")
             mariadb_connection.commit()
-            cursor.execute("UPDATE user SET balance=balance-"+amount+" where "+loan+"="+loaner)
+            cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
             mariadb_connection.commit()
         elif (borlend=="Lend"):
+            if (len(loanee)==5):
+                upid = "user_id"
+                tbl = "user"
+            else:
+                upid = "group_id"
+                tbl = "`group`"
             cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=10000")
             mariadb_connection.commit()
-            cursor.execute("UPDATE user SET balance=balance-"+amount+" where "+loan+"="+loanee)
+            cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
             mariadb_connection.commit()
         displayBal()
 
-        # update balance of group
         # update balance of users in the group
 
 def addTransaction(borlend):
     add = customtkinter.CTkToplevel()
     add.grab_set()
+    add.title("Add Transaction")
+    add.after(201, lambda: add.iconbitmap('splitwais.ico'))
 
     global input1
     global input2
@@ -447,7 +457,7 @@ def addTransaction(borlend):
             input3 = customtkinter.CTkEntry(add, width=350, height=20)
             lbl3.pack()
             input3.pack()
-            type = 1000
+            type = 10000
         case "Lend":
             lbl3 = customtkinter.CTkLabel(add, text="Loanee ID")
             input3 = customtkinter.CTkEntry(add, width=350, height=20)
@@ -477,10 +487,11 @@ customtkinter.set_default_color_theme("green")
 class MainApp(customtkinter.CTk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.title("Expense Tracker")
+        self.title("Split Wais")
         self.after(1, self.wm_state, 'zoomed')
 
 app = MainApp()
+app.iconbitmap("splitwais.ico")
 
 tabview = customtkinter.CTkTabview(master=app, width=1080, height=720)
 tabview.pack(padx=20, pady=50)
@@ -536,10 +547,14 @@ def edit_transaction(id):
         mariadb_connection.commit()
         defaultTransactionDisplay()
 
+        # edit loaner and loanee balance
+
 
 def editTransactionNow(id, index):
     edit = customtkinter.CTkToplevel()
     edit.grab_set()
+    edit.title("Add Transaction")
+    edit.after(201, lambda: edit.iconbitmap('splitwais.ico'))
 
     # get the tuple
     query = "SELECT * FROM transaction WHERE transaction_id = %s"
@@ -588,12 +603,15 @@ def update_transaction_scrollable_frame(result):
         num = 0
         id_reference = str(transaction[0])
         if transaction[6] != None:
-            ste = "normal"
+            st1 = "normal"
+            st2 = "disabled"
         else:
-            ste="disabled"
-        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=ste, command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+            st1 = "disabled"
+            st2 = "normal"
+        
+        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=st1, command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", state=st2, command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
     
         for data in transaction:
             if num < 7:
@@ -681,9 +699,45 @@ def settleTransaction(id):
     mariadb_connection.commit()
     defaultTransactionDisplay()
 
+    cursor.execute("SELECT * FROM transaction WHERE transaction_id="+id)
+    trans = cursor.fetchone()
 
-    # update balances of users
-    # update balance of groups
+    loaner = str(trans[2])
+    loanee = str(trans[3])
+    amount = str(trans[4])
+
+    
+    if (loaner=="10000"):
+        borlend = "Lend"
+    elif (loanee=="10000"):
+        borlend = "Borrow"
+
+    # update balance of user
+    if (borlend=="Borrow"):
+        if (len(loaner)==5):
+            upid = "user_id"
+            tbl = "user"
+        else:
+            upid = "group_id"
+            tbl = "`group`"
+        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=10000")
+        mariadb_connection.commit()
+        cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loaner)
+        mariadb_connection.commit()
+    elif (borlend=="Lend"):
+        if (len(loanee)==5):
+            upid = "user_id"
+            tbl = "user"
+        else:
+            upid = "group_id"
+            tbl = "`group`"
+        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=10000")
+        mariadb_connection.commit()
+        cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loanee)
+        mariadb_connection.commit()
+    displayBal()
+
+
     # update balance of users in the group
 
 
