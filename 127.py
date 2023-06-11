@@ -930,6 +930,7 @@ search_drop.set("Search by..")
 #Scrollable table
 users = customtkinter.CTkScrollableFrame(tab2, width = 720, height = 350, fg_color="#4B4947", corner_radius=0)
 users.grid(row=6, column=1, columnspan=5, pady=(0,0))
+users.after_idle(defaultDisplay)
 
 #Label
 usersLabel = customtkinter.CTkLabel(tab2, width=737, height= 30, fg_color = "#242424", text= "")
