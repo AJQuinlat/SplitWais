@@ -1015,7 +1015,8 @@ def editGroup(id, window):
     cursor.execute(query, inputs)
     mariadb_connection.commit()
     defaultGroupDisplay()
-    popup("Group edited", "successfully")
+    # popup("Group edited", "successfully")
+    msg.showinfo("Edit Group Success", "Group has been edited successfully!")
     window.destroy()
 
 def editGroupNow(id):
@@ -1047,7 +1048,8 @@ def deleteGroup(id):
     deleteHas = "DELETE FROM `has` where group_id=" + str(id)
     cursor.execute(deleteHas)
     mariadb_connection.commit()
-    popup("Group deleted", "successfully")
+    # popup("Group deleted", "successfully")
+    msg.showinfo("Delete Group Success", "Group has been deleted successfully!")
     defaultGroupDisplay()
 
 def deleteGroupLabels():
@@ -1132,7 +1134,8 @@ def addGroup(gid, gname, mem_no, balance, window):
     cursor.execute(insertHas)
     mariadb_connection.commit()
     defaultGroupDisplay()
-    popup("Group added", "successfully")
+    # popup("Group added", "successfully")
+    msg.showinfo("Add Group Success", "Group has been added successfully!")
     window.destroy()
     
 def showMembers(groupId):
@@ -1172,7 +1175,8 @@ def confirmAddMember(groupId, memberId, window): # need validation
     sql_statement = "INSERT INTO `has` VALUES(" + str(memberId) + ", " + str(groupId) + ");"
     cursor.execute(sql_statement)
     mariadb_connection.commit()
-    popup("Member added", "successfully")
+    # popup("Member added", "successfully")
+    msg.showinfo("Add Member Success", "Member has been added successfully!")
     window.destroy()
     showMembers(groupId)
     updateMemberCount(groupId)
@@ -1183,17 +1187,17 @@ def updateMemberCount(groupId):
     mariadb_connection.commit()
     defaultGroupDisplay()
 
-def popup(funx, status):
-    pop = customtkinter.CTkToplevel()
-    pop.wm_overrideredirect(True)
-    pop.geometry("+500+1100")
+# def popup(funx, status):
+#     pop = customtkinter.CTkToplevel()
+#     pop.wm_overrideredirect(True)
+#     pop.geometry("+500+1100")
     
-    def destroy_popup():
-        if pop.winfo_exists():
-            pop.destroy()
+#     def destroy_popup():
+#         if pop.winfo_exists():
+#             pop.destroy()
     
-    customtkinter.CTkLabel(pop, text=f"{funx} {status}!").pack()
-    pop.after(3000, destroy_popup)
+#     customtkinter.CTkLabel(pop, text=f"{funx} {status}!").pack()
+#     pop.after(3000, destroy_popup)
     
 tab3.columnconfigure(index=0, weight=1)
 tab3.columnconfigure(index=7, weight=1)
