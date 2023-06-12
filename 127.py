@@ -64,7 +64,7 @@ cursor.execute('''
 sql_statement = '''
     INSERT INTO user VALUES 
     (11111, 0.00, 'Maria', 'Maganda', 'Makiling'),
-    (22222, 0.00, 'Angela', 'Mercy', 'Ziegler'),
+    (22222, 100.00, 'Angela', 'Mercy', 'Ziegler'),
     (33333, 0.00, 'Gabriel', 'Reaper', 'Reyes'),
     (44444, 0.00, 'Jack', 'Soldier', 'Morrison'),
     (55555, 0.00, 'Ana', 'Sup', 'Amari'),
@@ -83,25 +83,25 @@ cursor.execute('''
     insert into `group` values
     (1023, "Overwatch", 8, 0),
     (1111, "Testing", 4, 0),
-    (1024, "Talon", 2, 0.00),
+    (1024, "Talon", 2, 50.00),
     (1021, "Helix Corporation", 2, 0);
 ''')
 mariadb_connection.commit()
 
 #for backup data
 
-# cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
-# cursor.execute('''
-#     insert into `transaction` values
-#     (1, 'Gun Rental', 1021, 10000, 600.00, str_to_date('10/13/2023', '%m/%d/%Y'), NULL, NULL, 10000),
-#     (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
-#     (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
-#     (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
-#     (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
-#     (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
+cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
+cursor.execute('''
+    insert into `transaction` values
+    (1, 'Gun Rental', 1021, 10000, 600.00, str_to_date('10/13/2023', '%m/%d/%Y'), NULL, NULL, 10000),
+    (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
+    (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
+    (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
+    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
+    (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
 
-# ''')
-# mariadb_connection.commit()
+''')
+mariadb_connection.commit()
 
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
@@ -608,12 +608,12 @@ def update_transaction_scrollable_frame(result):
         if st1 == "normal":
             st1btnColor = "#2B2B2B"
         else:
-            st1btnColor = "#565B5E"
+            st1btnColor = "#5C5957"
         
         if st2 == "normal":
             st2btnColor = "#2B2B2B"
         else:
-            st2btnColor = "#565B5E"
+            st2btnColor = "#5C5957"
 
         
         customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color=st2btnColor, state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
@@ -924,7 +924,7 @@ def update_scrollable_frame(result):
         id_reference = str(user[0])
         if user[1] != 0.00:
             btnstate = "disable"
-            btnColor = "#565B5E"
+            btnColor = "#5C5957"
         else:
             btnstate = "normal"
             btnColor = "#2B2B2B"
@@ -1139,7 +1139,7 @@ def update_group_scrollable_frame(result):
             btnColor = "#2B2B2B"
         else:
             btnState = "disabled"
-            btnColor = "#565B5E"
+            btnColor = "#5C5957"
             
         
         customtkinter.CTkButton(groups, text="Delete", width=50, fg_color=btnColor, state=btnState, command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
