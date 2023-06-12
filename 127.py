@@ -1085,6 +1085,7 @@ addUser.grid(row=11,column=5, sticky = tk.E, padx=5, pady= (10,0))
 global groups
 
 def editGroup(id, window):
+    
     #update group info using this query
     query = "UPDATE `group` SET group_name = %s WHERE group_id = %s"
     inputs = (groupNameInput.get(), id)
@@ -1212,25 +1213,32 @@ def addNewGroup():
     
 # add group function
 def addGroup(gid, gname, mem_no, balance, window):
-    checkGroup = f"select group_id from `group` where group_id={gid}"
-    resultGroup = cursor.execute(checkGroup)
-    resultGroup = cursor.fetchall()
     
-    if (resultGroup == [] and len(gid) == 4):
-        insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
-        cursor.execute(insertGroup)
-        insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
-        cursor.execute(insertHas)
-        mariadb_connection.commit()
-        defaultGroupDisplay()
-        # popup("Group added", "successfully")
-        msg.showinfo("Add Group Success", "Group has been added successfully!")
-    elif (len(gid) != 4):
-        msg.showerror(title="Error", message="Group cannot be added! Group ID length should be 4.")
-    else:
-        msg.showerror(title="Error", message="Group cannot be added! Group already exists.")
+    if (gid.isnumeric() and len(gid) != 0):
+        checkGroup = f"select group_id from `group` where group_id={gid}"
+        resultGroup = cursor.execute(checkGroup)
+        resultGroup = cursor.fetchall()
         
-    window.destroy()
+        if (resultGroup == [] and len(gid) == 4 and gid.isnumeric() and len(gname) != 0):
+            insertGroup = "INSERT INTO `group` VALUES(" + gid + ",'" + gname + "'" + ","+ mem_no + "," + balance + ");"
+            cursor.execute(insertGroup)
+            insertHas = "INSERT INTO `has` VALUES(" + str(11111) + ", " + gid + ");"
+            cursor.execute(insertHas)
+            mariadb_connection.commit()
+            defaultGroupDisplay()
+            # popup("Group added", "successfully")
+            msg.showinfo("Add Group Success", "Group has been added successfully!")
+            window.destroy()
+        elif (len(gid) != 4):
+            msg.showerror(title="Error", message="Group cannot be added! Group ID length should be 4.")
+        elif (len(gname) == 0):
+            msg.showerror(title="Error", message="Group cannot be added! Group name should not be empty.")
+        else:
+            msg.showerror(title="Error", message="Group cannot be added! Group already exists.")
+    elif (len(gid) == 0):
+        msg.showerror(title="Error", message="Group cannot be added! Group ID should not be empty.")
+    else:
+        msg.showerror(title="Error", message="Group cannot be added! Group ID should only contain numbers.")
     
 def showMembers(groupId):
     show = customtkinter.CTkToplevel()
@@ -1265,24 +1273,30 @@ def addMember(groupId, window):
     button = customtkinter.CTkButton(add, text="Confirm", command=lambda: confirmAddMember(groupId, memberId.get(), add))
     button.pack(padx=10, pady=10)
 
-def confirmAddMember(groupId, memberId, window): # need validation
-    checkMember = f"select user_id from `has` where user_id={memberId} and group_id={groupId}"
-    memberResult = cursor.execute(checkMember)
-    memberResult = cursor.fetchall()
+def confirmAddMember(groupId, memberId, window): # need validation    
     
-    if (memberResult == [] and len(memberId) == 5):
-        sql_statement = "INSERT INTO `has` VALUES(" + str(memberId) + ", " + str(groupId) + ");"
-        cursor.execute(sql_statement)
-        mariadb_connection.commit()
-        # popup("Member added", "successfully")
-        msg.showinfo("Add Member Success", "Member has been added successfully!")
-        window.destroy()
-        showMembers(groupId)
-        updateMemberCount(groupId)
-    elif (len(memberId) != 5):
-        msg.showerror(title="Error", message="Member cannot be added! Member ID length should be 5.")
+    if (memberId.isnumeric() and len(memberId) != 0):
+        checkMember = f"select user_id from `has` where user_id={memberId} and group_id={groupId}"
+        memberResult = cursor.execute(checkMember)
+        memberResult = cursor.fetchall()
+        
+        if (memberResult == [] and len(memberId) == 5):
+            sql_statement = "INSERT INTO `has` VALUES(" + str(memberId) + ", " + str(groupId) + ");"
+            cursor.execute(sql_statement)
+            mariadb_connection.commit()
+            # popup("Member added", "successfully")
+            msg.showinfo("Add Member Success", "Member has been added successfully!")
+            window.destroy()
+            showMembers(groupId)
+            updateMemberCount(groupId)
+        elif (len(memberId) != 5):
+            msg.showerror(title="Error", message="Member cannot be added! Member ID length should be 5.")
+        else:
+            msg.showerror(title="Error", message="Member cannot be added! Member already in the group.")
+    elif (len(memberId) == 0):
+        msg.showerror(title="Error", message="Member cannot be added! Member ID should not be empty.")
     else:
-        msg.showerror(title="Error", message="Member cannot be added! Member already in the group.")
+        msg.showerror(title="Error", message="Member cannot be added! Member ID should only contain numbers.")
  
 def updateMemberCount(groupId):
     sql_statement = "UPDATE `group` SET number_of_members=(SELECT COUNT(user_id) FROM `has` WHERE group_id=" + str(groupId) + ") WHERE group_id=" + str(groupId)
