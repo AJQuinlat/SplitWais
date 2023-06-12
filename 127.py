@@ -123,7 +123,7 @@ cursor.execute('''
 ''')
 mariadb_connection.commit()
 
-### FEATURES ------------------------------------------------------------------------
+### FUNCTIONS ------------------------------------------------------------------------
 # add user function
 def add_user(user_id, fname, mname, lname):
 
@@ -174,12 +174,6 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
     mariadb_connection.commit()
     
 
-# delete user by id
-def del_user(uid):
-    sqlstatement = "DELETE FROM user WHERE user_id = " + uid
-    cursor.execute(sqlstatement)
-    mariadb_connection.commit()
-
 # delete transaction by id
 def del_transaction(tid):
     sqlstatement = "DELETE FROM transaction WHERE transaction_id = " + tid
@@ -190,10 +184,6 @@ def del_transaction(tid):
 def clear_transaction():
     cursor.execute("DELETE FROM transaction WHERE payment_date IS NOT NULL;")
     mariadb_connection.commit()
-
-# delete group by id
-def del_group(gid):
-    sqlstatement = "DELETE FROM `group` WHERE group_id = " + gid
 
 # search a transaction by id
 def search_transaction_id(tid):
@@ -208,46 +198,6 @@ def search_transaction_name(tname):
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
-
-# search a user by id
-def search_user_id(uid):
-    sqlstatement = "SELECT * FROM user WHERE user_id=" + uid
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-# search a user by name
-def search_user_name(uname):
-    sqlstatement = "SELECT * FROM user WHERE CONCAT(first_name, middle_name, last_name) LIKE '%" + uname + "%'"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-# search a group by id
-def search_grp_id(gid):
-    sqlstatement = "SELECT * FROM `group` WHERE group_id=" + gid
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-# search a group by name
-def search_grp_name(gname):
-    sqlstatement = "SELECT * FROM `group` WHERE group_name LIKE '%" + gname + "%'"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-
-
-##### REPORTS TO BE GENERATED
-
-
-# view expenses from a certain month
-def view_month(month):
-    sqlstatement = "SELECT * FROM transaction WHERE MONTH(transaction_date) = " + month
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
 
 # view all expenses made with a friend
 def search_transaction_friend(fid):
@@ -272,35 +222,6 @@ def curr_balance():
     sqlstatement = "select balance from USER where user_id = 11111"
     cursor.execute(sqlstatement)
     return(cursor.fetchone()[0])
-
-# view all friends with outstanding balance;
-def view_friend_outbalance():
-    sqlstatement = "select * from USER where Balance > 0 and user_id != 11111"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-# view_friend_outbalance()
-
-# view all groups
-def view_groups():
-    sqlstatement = "SELECT * FROM `group`"
-    cursor.execute(sqlstatement)
-    
-    lst = [("Group ID", "Group Name", "Number of Members", "Balance")] + cursor.fetchall()
-    table(lst, "Groups")
-
-    for x in cursor:
-        print(x)
-
-    
-
-def view_group_outbalance():
-    sqlstatement = "SELECT * FROM `group` WHERE balance > 0"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-# view_group_outbalance()
-
 
 def add1():
     add = customtkinter.CTkToplevel()
@@ -398,6 +319,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         cursor.execute(sql_statement)
         mariadb_connection.commit()
         add.destroy()
+        msg.showinfo("Transaction Added", "Transaction has been added successfully")
         defaultTransactionDisplay()
 
 
@@ -580,6 +502,8 @@ def edit_transaction(id):
         cursor.execute(query, inputs)
         mariadb_connection.commit()
 
+        msg.showinfo("Transaction Edited", "Transaction has been edited successfully")
+
         # redisplay transactions, users, and groups
         defaultTransactionDisplay()
         defaultDisplay()
@@ -689,6 +613,7 @@ def deleteTransaction(id):
     toDel = (id, )
     cursor.execute(query, toDel)
     mariadb_connection.commit()
+    msg.showinfo("Transaction Deleted", "Transaction has been deleted successfully")
     defaultTransactionDisplay()
 
 def displayByMonth(month):
