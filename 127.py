@@ -138,6 +138,8 @@ def add_user(user_id, fname, mname, lname):
 
     if len(user_id) != 5:
         msg.showerror(title="Error", message="Error: Length of User ID should be 5")
+    elif not user_id.isnumeric():
+       msg.showerror(title="Error", message="Error: User ID should only contain numerals")
     else:
         #if there is no same existing id 
         if result[0][0] == 0:
@@ -941,11 +943,22 @@ def deleteUser(id):
 
     #if the user/friend does not have an existing balance then it can be deleted
     if checkresult[0][0] == 0.00:
-        #delete from has table first
-        hasQuery = "DELETE FROM has WHERE user_id = %s" 
-        deleteHas = (id,)
-        cursor.execute(hasQuery, deleteHas)
-        mariadb_connection.commit()
+        #get groups of the user
+        userGroupQuery = "SELECT group_id from has where user_id = %s"
+        userGroup = (id,)
+        getGroup = cursor.execute(userGroupQuery, userGroup)
+        getGroup = cursor.fetchall()
+
+        if getGroup != []:
+            #delete from has table first
+            hasQuery = "DELETE FROM has WHERE user_id = %s" 
+            deleteHas = (id,)
+            cursor.execute(hasQuery, deleteHas)
+            mariadb_connection.commit()
+
+            for group in getGroup:
+                updateMemberCount(group[0])
+        
         #delete from users
         query = "DELETE FROM user WHERE user_id = %s"
         toDel = (id, )
