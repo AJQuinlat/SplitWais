@@ -332,6 +332,15 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             else:
                 upid = "group_id"
                 tbl = "`group`"
+
+                # get all the users from a group
+                cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loaner)
+                gusers = [x[0] for x in cursor.fetchall()]
+                # update user balance from group transaction
+                grpamt=str(float(amount)/float(len(gusers)))
+                for user in gusers:
+                    cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
+
             cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
@@ -343,6 +352,15 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             else:
                 upid = "group_id"
                 tbl = "`group`"
+
+                # get all the users from a group
+                cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loanee)
+                gusers = [x[0] for x in cursor.fetchall()]
+                # update user balance from group transaction
+                grpamt=str(float(amount)/float(len(gusers)))
+                for user in gusers:
+                    cursor.execute("UPDATE user SET balance=balance+"+grpamt+" where user_id="+str(user))
+
             cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
@@ -680,6 +698,15 @@ def settleTransaction(id):
         else:
             upid = "group_id"
             tbl = "`group`"
+
+            # get all the users from a group
+            cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loaner)
+            gusers = [x[0] for x in cursor.fetchall()]
+            # update user balance from group transaction
+            grpamt=str(float(amount)/float(len(gusers)))
+            for user in gusers:
+                cursor.execute("UPDATE user SET balance=balance+"+grpamt+" where user_id="+str(user))
+
         cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loaner)
@@ -691,14 +718,22 @@ def settleTransaction(id):
         else:
             upid = "group_id"
             tbl = "`group`"
-        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
+
+            # get all the users from a group
+            cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loanee)
+            gusers = [x[0] for x in cursor.fetchall()]
+            # update user balance from group transaction
+            grpamt=str(float(amount)/float(len(gusers)))
+            for user in gusers:
+                cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
+
+        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loanee)
         mariadb_connection.commit()
     displayBal()
-
-
-    # update balance of users in the group
+    defaultDisplay()
+    defaultGroupDisplay()
 
 def showUnsettled():
     query = "SELECT * FROM transaction WHERE payment_date IS NULL"
