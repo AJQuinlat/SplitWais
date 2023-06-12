@@ -943,8 +943,6 @@ def searchNow():
     if selected == "Search by..":
         #since 11111 is the id of the user, it cant be shown in friends list
         query = "SELECT * FROM user where user_id != 11111 order by first_name"
-    if selected == "Search by..":
-        query = "SELECT * FROM user order by first_name"
     if selected == "First Name":
         #search by first name
         query = "SELECT * FROM user where first_name = %s order by first_name "
