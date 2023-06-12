@@ -540,15 +540,50 @@ def edit_transaction(id):
     elif validateDate(tdateInput.get()):
         msg.showerror(title="Error", message="Error: Incorrect data format, should be YYYY-MM-DD")
     else:  
+        # get transaction info
+        cursor.execute("SELECT * FROM transaction WHERE transaction_id="+id)
+        curtrans = cursor.fetchone()
+        amt = str(curtrans[4])
+        loaner = str(curtrans[2])
+        loanee = str(curtrans[3])
+
+        # edit loaner and loanee balance
+
+        # checks if loaner is a user or a group
+        if len(loanerInput.get())==5:
+            cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanerInput.get())
+        elif len(loanerInput.get())==4:
+            cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanerInput.get())
+        
+        # checks if original transaction had a user or a group
+        if len(loaner)==5:
+            cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaner)
+        elif len(loaner)==4:
+            cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaner)
+        
+        # checks if loanee is a user or a group
+        if len(loaneeInput.get())==5:
+            cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaneeInput.get())
+        elif len(loaneeInput.get())==4:
+            cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaneeInput.get())
+
+        # checks if original transaction had a user or a group
+        if len(loanee)==5:
+            cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanee)
+        elif len(loanee)==4:
+            cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanee)
+
+
         #update transaction info using this query
         query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, transaction_date = %s WHERE transaction_id = %s"
         inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), tdateInput.get(), id)
         cursor.execute(query, inputs)
         mariadb_connection.commit()
+
+        # redisplay transactions, users, and groups
         defaultTransactionDisplay()
-
-        # edit loaner and loanee balance
-
+        defaultDisplay()
+        defaultGroupDisplay()
 
 def editTransactionNow(id, index):
     edit = customtkinter.CTkToplevel()
@@ -816,8 +851,8 @@ borrow = customtkinter.CTkButton(tab1, width=75, height=30, text="     Borrow   
 borrow.grid(row=4,column=4, pady=5, padx=5)
 lend = customtkinter.CTkButton(tab1, width=75, height=30, text="      Lend      ", corner_radius=5, fg_color="#4B4947", command= lambda: addTransaction("Lend"))
 lend.grid(row=4,column=5, pady=5, padx=5)
-unsettled = customtkinter.CTkButton(tab1, width=75, height=30, text="Show Unsettled", corner_radius=5, fg_color="#4B4947", command= showUnsettled)
-unsettled.grid(row=4,column=6, pady=5, padx=5)
+unsettled = customtkinter.CTkButton(tab1, width=100, height=30, text="Show Unsettled", corner_radius=5, fg_color="#4B4947", command= showUnsettled)
+unsettled.grid(row=4,column=6, pady=5, padx=5, sticky="w")
 
 tab1.after_idle(defaultTransactionDisplay)
 
