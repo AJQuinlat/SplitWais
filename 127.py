@@ -63,16 +63,16 @@ cursor.execute('''
 ### inserting initial state
 sql_statement = '''
     INSERT INTO user VALUES 
-    (11111, 500.00, 'Maria', 'Maganda', 'Makiling'),
-    (22222, 6900.00, 'Angela', 'Mercy', 'Ziegler'),
-    (33333, 8000.00, 'Gabriel', 'Reaper', 'Reyes'),
-    (44444, 4440.00, 'Jack', 'Soldier', 'Morrison'),
-    (55555, 40.00, 'Ana', 'Sup', 'Amari'),
-    (66666, 800.00, 'Fareeha', 'Pharah', 'Amari'),
-    (77777, 65000.00, 'Mei', 'Ice', 'Wall'),
-    (88888, 100.00, 'Brigitte', 'Tough', 'Lindholm'),
-    (99999, 7000.00, 'Reinhardt', 'Hammer', 'Wilhelm'),
-    (10000, 10000.00, 'Torbjorn', 'Turret', 'Lindholm');
+    (11111, 0.00, 'Maria', 'Maganda', 'Makiling'),
+    (22222, 0.00, 'Angela', 'Mercy', 'Ziegler'),
+    (33333, 0.00, 'Gabriel', 'Reaper', 'Reyes'),
+    (44444, 0.00, 'Jack', 'Soldier', 'Morrison'),
+    (55555, 0.00, 'Ana', 'Sup', 'Amari'),
+    (66666,0.00, 'Fareeha', 'Pharah', 'Amari'),
+    (77777, 0.00, 'Mei', 'Ice', 'Wall'),
+    (88888, 0.00, 'Brigitte', 'Tough', 'Lindholm'),
+    (99999, 0.00, 'Reinhardt', 'Hammer', 'Wilhelm'),
+    (10000, 0.00, 'Torbjorn', 'Turret', 'Lindholm');
 
 '''
 cursor.execute(sql_statement)
@@ -83,23 +83,23 @@ cursor.execute('''
     insert into `group` values
     (1023, "Overwatch", 8, 0),
     (1111, "Testing", 4, 0),
-    (1024, "Talon", 2, 200.00),
+    (1024, "Talon", 2, 0.00),
     (1021, "Helix Corporation", 2, 0);
 ''')
 mariadb_connection.commit()
 
-cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
-cursor.execute('''
-    insert into `transaction` values
-    (1, 'Gun Rental', 1021, 10000, 600.00, str_to_date('10/13/2023', '%m/%d/%Y'), NULL, NULL, 10000),
-    (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
-    (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
-    (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
-    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
-    (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
+# cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
+# cursor.execute('''
+#     insert into `transaction` values
+#     (1, 'Gun Rental', 1021, 10000, 600.00, str_to_date('10/13/2023', '%m/%d/%Y'), NULL, NULL, 10000),
+#     (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
+#     (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
+#     (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
+#     (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
+#     (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
 
-''')
-mariadb_connection.commit()
+# ''')
+# mariadb_connection.commit()
 
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
@@ -253,7 +253,6 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
                 sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, "+ gid + ", " + "NULL" + ")"
             else:
                 sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, NULL, " + str(uid) + ")"
-        
         cursor.execute(sql_statement)
         mariadb_connection.commit()
         defaultTransactionDisplay()
@@ -314,6 +313,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
                 else:
                     sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), NULL, " + uid + ")"
             else:
+                print(gid)
                 if (gid != "NULL"):
                     sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, "+ gid + ", " + "NULL" + ")"
                 else:
@@ -327,51 +327,51 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
 
 
 
-        # update balance of user
-        if (borlend=="Borrow"):
-            if (len(loaner)==5):
-                upid = "user_id"
-                tbl = "user"
-            else:
-                upid = "group_id"
-                tbl = "`group`"
+    # update balance of user
+    if (borlend=="Borrow"):
+        if (len(loaner)==5):
+            upid = "user_id"
+            tbl = "user"
+        else:
+            upid = "group_id"
+            tbl = "`group`"
 
-                # get all the users from a group
-                cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loaner)
-                gusers = [x[0] for x in cursor.fetchall()]
-                # update user balance from group transaction
-                grpamt=str(float(amount)/float(len(gusers)))
-                for user in gusers:
-                    cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
+            # get all the users from a group
+            cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loaner)
+            gusers = [x[0] for x in cursor.fetchall()]
+            # update user balance from group transaction
+            grpamt=str(float(amount)/float(len(gusers)))
+            for user in gusers:
+                cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
 
-            cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
-            mariadb_connection.commit()
-            cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
-            mariadb_connection.commit()
-        elif (borlend=="Lend"):
-            if (len(loanee)==5):
-                upid = "user_id"
-                tbl = "user"
-            else:
-                upid = "group_id"
-                tbl = "`group`"
+        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
+        mariadb_connection.commit()
+        cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
+        mariadb_connection.commit()
+    elif (borlend=="Lend"):
+        if (len(loanee)==5):
+            upid = "user_id"
+            tbl = "user"
+        else:
+            upid = "group_id"
+            tbl = "`group`"
 
-                # get all the users from a group
-                cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loanee)
-                gusers = [x[0] for x in cursor.fetchall()]
-                # update user balance from group transaction
-                grpamt=str(float(amount)/float(len(gusers)))
-                for user in gusers:
-                    cursor.execute("UPDATE user SET balance=balance+"+grpamt+" where user_id="+str(user))
+            # get all the users from a group
+            cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loanee)
+            gusers = [x[0] for x in cursor.fetchall()]
+            # update user balance from group transaction
+            grpamt=str(float(amount)/float(len(gusers)))
+            for user in gusers:
+                cursor.execute("UPDATE user SET balance=balance+"+grpamt+" where user_id="+str(user))
 
-            cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
-            mariadb_connection.commit()
-            cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
-            mariadb_connection.commit()
+        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
+        mariadb_connection.commit()
+        cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
+        mariadb_connection.commit()
         
-        displayBal()
-        defaultDisplay()
-        defaultGroupDisplay()
+    displayBal()
+    defaultDisplay()
+    defaultGroupDisplay()
 
 def addTransaction(borlend):
     add = customtkinter.CTkToplevel()
@@ -499,7 +499,7 @@ def edit_transaction(id):
         if loanee == "11111":
             borlend = "Borrow"
             type = loanerInput.get()
-            if len(loaner) == 5:
+            if len(loanerInput.get()) == 5:
                 gid = "NULL"
                 uid = loanerInput.get()
             else:
@@ -509,58 +509,16 @@ def edit_transaction(id):
         elif loaner == "11111":
             type = loaneeInput.get()
             borlend = "Lend"
-            if len(loanee) == 5:
+            if len(loaneeInput.get()) == 5:
                 gid = "NULL"
                 uid = loaneeInput.get()
             else:
                 gid = loaneeInput.get()
                 uid = "NULL"
 
-
-        # settleTransaction(id)
+        settleTransaction(id)
         deleteTransaction(id, "Update")
-        add_transaction(tid, tnameInput.get(), loaner, loanee, amt, "NULL", gid, uid, None, borlend, type)
-
-        # # checks if loaner is a user or a group
-        # if len(loanerInput.get())==5:
-        #     cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanerInput.get())
-        # elif len(loanerInput.get())==4:
-        #     cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanerInput.get())
-
-        #     # update user through group
-        
-        # # checks if original transaction had a user or a group
-        # if len(loaner)==5:
-        #     cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaner)
-        # elif len(loaner)==4:
-        #     cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaner)
-
-        #     # update user through group
-
-        
-        # # checks if loanee is a user or a group
-        # if len(loaneeInput.get())==5:
-        #     cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaneeInput.get())
-        # elif len(loaneeInput.get())==4:
-        #     cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaneeInput.get())
-
-        #     # update user through group
-
-
-        # # checks if original transaction had a user or a group
-        # if len(loanee)==5:
-        #     cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanee)
-        # elif len(loanee)==4:
-        #     cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanee)
-
-        #     # update user through group
-
-
-        #update transaction info using this query
-        query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, transaction_date = %s WHERE transaction_id = %s"
-        inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), tdateInput.get(), id)
-        cursor.execute(query, inputs)
-        mariadb_connection.commit()
+        add_transaction(tid, tnameInput.get(), loanerInput.get(), loaneeInput.get(), amt, "NULL", gid, uid, None, borlend, type)
 
         msg.showinfo("Transaction Edited", "Transaction has been edited successfully")
 
