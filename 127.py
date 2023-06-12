@@ -137,28 +137,30 @@ def add_user(user_id, fname, mname, lname):
     idsearch = (user_id,)
     result = cursor.execute(searchQuery, idsearch)
     result = cursor.fetchall()
-
-    if len(user_id) != 5:
-        msg.showerror(title="Error", message="Error: Length of User ID should be 5")
-    elif not user_id.isnumeric():
-       msg.showerror(title="Error", message="Error: User ID should only contain numerals")
+    if user_id == "" or fname == "" or mname == "" or lname == "":
+        msg.showerror(title="Error", message="Error: Inputs should not be empty")
     else:
-        #if there is no same existing id 
-        if result[0][0] == 0:
-            fname="'"+fname+"'"
-            mname="'"+mname+"'"
-            lname="'"+lname+"'"
-            sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
-            cursor.execute(sql_statement)
-            mariadb_connection.commit()
-            input1.delete(0,"end")
-            input2.delete(0,"end")
-            input3.delete(0,"end")
-            input4.delete(0,"end")
-            msg.showinfo("User added", "User has been added successfully")
-            defaultDisplay()
+        if len(user_id) != 5:
+            msg.showerror(title="Error", message="Error: Length of User ID should be 5")
+        elif not user_id.isnumeric():
+            msg.showerror(title="Error", message="Error: User ID should only contain numerals")
         else:
-            msg.showerror(title="Error", message="Error: User ID is already in used.") 
+            #if there is no same existing id 
+            if result[0][0] == 0:
+                fname="'"+fname+"'"
+                mname="'"+mname+"'"
+                lname="'"+lname+"'"
+                sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
+                cursor.execute(sql_statement)
+                mariadb_connection.commit()
+                input1.delete(0,"end")
+                input2.delete(0,"end")
+                input3.delete(0,"end")
+                input4.delete(0,"end")
+                msg.showinfo("User added", "User has been added successfully")
+                defaultDisplay()
+            else:
+                msg.showerror(title="Error", message="Error: User ID is already in used.") 
 
 # delete transaction by id
 def del_transaction(tid):
@@ -633,9 +635,21 @@ def update_transaction_scrollable_frame(result):
             st1 = "disabled"
             st2 = "normal"
         
-        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=st1, command=lambda d= id_reference :deleteTransaction(d, "")).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", state=st2, command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        #change color of disabled button
+        if st1 == "normal":
+            st1btnColor = "#2B2B2B"
+        else:
+            st1btnColor = "#5C5957"
+        
+        if st2 == "normal":
+            st2btnColor = "#2B2B2B"
+        else:
+            st2btnColor = "#5C5957"
+
+        
+        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color=st2btnColor, state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color=st1btnColor, state=st1, command=lambda d= id_reference :deleteTransaction(d, "")).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color=st2btnColor, state=st2, command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
     
         for data in transaction:
             if num < 7:
@@ -886,13 +900,16 @@ def deleteLabels():
         widget.destroy()
 
 def edit_user(id):
-    #update user info using this query
-    query = "UPDATE user SET first_name = %s, middle_name = %s, last_name = %s WHERE user_id = %s"
-    inputs = (fnameInput.get(), mnameInput.get(), lnameInput.get(), id)
-    cursor.execute(query, inputs)
-    mariadb_connection.commit()
-    msg.showinfo("Update Success", "User information has been updated.")
-    defaultDisplay()
+    if fnameInput.get() == "" or  mnameInput.get() == "" or lnameInput.get() == "":
+        msg.showerror(title="Error", message="Error: Input should not be empty")
+    else:
+        #update user info using this query
+        query = "UPDATE user SET first_name = %s, middle_name = %s, last_name = %s WHERE user_id = %s"
+        inputs = (fnameInput.get(), mnameInput.get(), lnameInput.get(), id)
+        cursor.execute(query, inputs)
+        mariadb_connection.commit()
+        msg.showinfo("Update Success", "User information has been updated.")
+        defaultDisplay()
 
 def editNow(id, index):
     edit = customtkinter.CTkToplevel()
@@ -939,9 +956,12 @@ def update_scrollable_frame(result):
         id_reference = str(user[0])
         if user[1] != 0.00:
             btnstate = "disable"
+            btnColor = "#5C5957"
         else:
             btnstate = "normal"
-        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", state = btnstate, command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+            btnColor = "#2B2B2B"
+
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color= btnColor, state = btnstate, command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
         customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editNow(d, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
@@ -1149,10 +1169,13 @@ def update_group_scrollable_frame(result):
         id_reference = str(group[0])
         if group[3] == 0:
             btnState = "normal"
+            btnColor = "#2B2B2B"
         else:
             btnState = "disabled"
+            btnColor = "#5C5957"
+            
         
-        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", state=btnState, command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color=btnColor, state=btnState, command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:editGroupNow(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Show members", width=50, fg_color="#2B2B2B", command=lambda g =id_reference:showMembers(g)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
