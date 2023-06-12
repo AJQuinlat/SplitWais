@@ -138,6 +138,8 @@ def add_user(user_id, fname, mname, lname):
 
     if len(user_id) != 5:
         msg.showerror(title="Error", message="Error: Length of User ID should be 5")
+    elif not user_id.isnumeric():
+       msg.showerror(title="Error", message="Error: User ID should only contain numerals")
     else:
         #if there is no same existing id 
         if result[0][0] == 0:
@@ -875,7 +877,11 @@ def update_scrollable_frame(result):
     for i, user in enumerate(result):
         num = 0
         id_reference = str(user[0])
-        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        if user[1] != 0.00:
+            btnstate = "disable"
+        else:
+            btnstate = "normal"
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", state = btnstate, command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
         customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editNow(d, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
@@ -938,11 +944,22 @@ def deleteUser(id):
 
     #if the user/friend does not have an existing balance then it can be deleted
     if checkresult[0][0] == 0.00:
-        #delete from has table first
-        hasQuery = "DELETE FROM has WHERE user_id = %s" 
-        deleteHas = (id,)
-        cursor.execute(hasQuery, deleteHas)
-        mariadb_connection.commit()
+        #get groups of the user
+        userGroupQuery = "SELECT group_id from has where user_id = %s"
+        userGroup = (id,)
+        getGroup = cursor.execute(userGroupQuery, userGroup)
+        getGroup = cursor.fetchall()
+
+        if getGroup != []:
+            #delete from has table first
+            hasQuery = "DELETE FROM has WHERE user_id = %s" 
+            deleteHas = (id,)
+            cursor.execute(hasQuery, deleteHas)
+            mariadb_connection.commit()
+
+            for group in getGroup:
+                updateMemberCount(group[0])
+        
         #delete from users
         query = "DELETE FROM user WHERE user_id = %s"
         toDel = (id, )
@@ -950,8 +967,6 @@ def deleteUser(id):
         mariadb_connection.commit()
         msg.showinfo("Delete Success", "User has been deleted successfully")
         defaultDisplay()
-    else:
-        msg.showerror(title="Error", message="Error: Cannot be deleted! User still has unsettled transaction")
 
 def viewFriendOutbal():
     query = "select * from USER where Balance > 0 and user_id != 11111 order by balance desc"
