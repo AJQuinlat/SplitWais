@@ -483,6 +483,8 @@ def edit_transaction(id):
         msg.showerror(title="Error", message="Error: Loanee ID does not exist")
     elif validateDate(tdateInput.get()):
         msg.showerror(title="Error", message="Error: Incorrect data format, should be YYYY-MM-DD")
+    elif not(loaneeInput.get()=="11111" or loanerInput.get()=="11111"):
+        msg.showerror(title="Error", message="Error: Loaner ID or Loanee ID should be 11111")
     else:  
         # get transaction info
         cursor.execute("SELECT * FROM transaction WHERE transaction_id="+id)
