@@ -137,28 +137,30 @@ def add_user(user_id, fname, mname, lname):
     idsearch = (user_id,)
     result = cursor.execute(searchQuery, idsearch)
     result = cursor.fetchall()
-
-    if len(user_id) != 5:
-        msg.showerror(title="Error", message="Error: Length of User ID should be 5")
-    elif not user_id.isnumeric():
-       msg.showerror(title="Error", message="Error: User ID should only contain numerals")
+    if user_id == "" or fname == "" or mname == "" or lname == "":
+        msg.showerror(title="Error", message="Error: Inputs should not be empty")
     else:
-        #if there is no same existing id 
-        if result[0][0] == 0:
-            fname="'"+fname+"'"
-            mname="'"+mname+"'"
-            lname="'"+lname+"'"
-            sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
-            cursor.execute(sql_statement)
-            mariadb_connection.commit()
-            input1.delete(0,"end")
-            input2.delete(0,"end")
-            input3.delete(0,"end")
-            input4.delete(0,"end")
-            msg.showinfo("User added", "User has been added successfully")
-            defaultDisplay()
+        if len(user_id) != 5:
+            msg.showerror(title="Error", message="Error: Length of User ID should be 5")
+        elif not user_id.isnumeric():
+            msg.showerror(title="Error", message="Error: User ID should only contain numerals")
         else:
-            msg.showerror(title="Error", message="Error: User ID is already in used.") 
+            #if there is no same existing id 
+            if result[0][0] == 0:
+                fname="'"+fname+"'"
+                mname="'"+mname+"'"
+                lname="'"+lname+"'"
+                sql_statement = "INSERT INTO user VALUES(" + user_id + "," + balance + ","+ fname + "," + mname +"," + lname + ");"
+                cursor.execute(sql_statement)
+                mariadb_connection.commit()
+                input1.delete(0,"end")
+                input2.delete(0,"end")
+                input3.delete(0,"end")
+                input4.delete(0,"end")
+                msg.showinfo("User added", "User has been added successfully")
+                defaultDisplay()
+            else:
+                msg.showerror(title="Error", message="Error: User ID is already in used.") 
 
 # add transaction function
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
@@ -866,13 +868,16 @@ def deleteLabels():
         widget.destroy()
 
 def edit_user(id):
-    #update user info using this query
-    query = "UPDATE user SET first_name = %s, middle_name = %s, last_name = %s WHERE user_id = %s"
-    inputs = (fnameInput.get(), mnameInput.get(), lnameInput.get(), id)
-    cursor.execute(query, inputs)
-    mariadb_connection.commit()
-    msg.showinfo("Update Success", "User information has been updated.")
-    defaultDisplay()
+    if fnameInput.get() == "" or  mnameInput.get() == "" or lnameInput.get() == "":
+        msg.showerror(title="Error", message="Error: Input should not be empty")
+    else:
+        #update user info using this query
+        query = "UPDATE user SET first_name = %s, middle_name = %s, last_name = %s WHERE user_id = %s"
+        inputs = (fnameInput.get(), mnameInput.get(), lnameInput.get(), id)
+        cursor.execute(query, inputs)
+        mariadb_connection.commit()
+        msg.showinfo("Update Success", "User information has been updated.")
+        defaultDisplay()
 
 def editNow(id, index):
     edit = customtkinter.CTkToplevel()
