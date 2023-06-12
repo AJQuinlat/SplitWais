@@ -1292,18 +1292,6 @@ def updateMemberCount(groupId):
     mariadb_connection.commit()
     defaultGroupDisplay()
 
-# def popup(funx, status):
-#     pop = customtkinter.CTkToplevel()
-#     pop.wm_overrideredirect(True)
-#     pop.geometry("+500+1100")
-    
-#     def destroy_popup():
-#         if pop.winfo_exists():
-#             pop.destroy()
-    
-#     customtkinter.CTkLabel(pop, text=f"{funx} {status}!").pack()
-#     pop.after(3000, destroy_popup)
-    
 tab3.columnconfigure(index=0, weight=1)
 tab3.columnconfigure(index=7, weight=1)
 button_font = font.Font(size=20)
@@ -1311,8 +1299,6 @@ button_font = font.Font(size=20)
 totalBalanceFromGroups = customtkinter.CTkLabel(tab3, text="Total balance from groups:  ", font=("Segoi UI", 20))
 totalBalanceFromGroups.grid(row=0, column=1, pady=(30, 5))
 displayBal()
-# totalBalanceFromGroupsValue = customtkinter.CTkLabel(tab3, text="PHP. " + str(getAllGroupBalance()), font=("Segoi UI", 20), text_color="#31A37C")
-# totalBalanceFromGroupsValue.grid(row=0, column=2, pady=(30, 5))
 
 searchBar = customtkinter.CTkEntry(tab3, width=200, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 searchBar.grid(row=1, column=1, pady=5, padx=5)
