@@ -160,24 +160,6 @@ def add_user(user_id, fname, mname, lname):
         else:
             msg.showerror(title="Error", message="Error: User ID is already in used.") 
 
-# add transaction function
-def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
-    curr = dt.datetime.now()
-    tdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
-    if (pdate!="NULL"):
-        if (gid != "NULL"):
-            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), "+ gid + ", " + "NULL)"
-        else:
-            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), NULL, " + uid + ")"
-    else:
-        if (gid != "NULL"):
-            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, "+ gid + ", " + "NULL" + ")"
-        else:
-            sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, NULL, " + uid + ")"
-    cursor.execute(sql_statement)
-    mariadb_connection.commit()
-    
-
 # delete transaction by id
 def del_transaction(tid):
     sqlstatement = "DELETE FROM transaction WHERE transaction_id = " + tid
@@ -260,52 +242,8 @@ def add1():
     button.pack(padx=10, pady=10)
 
 def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, borlend, type):
-    type = input3.get()
-    if (len(input3.get())==5):
-        if (borlend=="Borrow"):
-            uid = 11111
-        else:
-            loaner = 11111
-            uid = type
-            loanee = uid            
-    elif (len(input3.get())==4):
-        if (borlend=="Borrow"):
-            uid = 11111
-        else:
-            loaner = 11111
-            uid = type
-            loanee = uid
-    
-    # getting all the transaction ids
-    cursor.execute("SELECT transaction_id FROM transaction")
-    tids = [str(x[0]) for x in cursor.fetchall()]
-
-    # getting all the friend and group ids
-    cursor.execute("SELECT user_id FROM user WHERE user_id != 11111")
-    lids = [str(x[0]) for x in cursor.fetchall()]
-    cursor.execute("SELECT group_id FROM `group`")
-    lids.extend([str(x[0]) for x in cursor.fetchall()])
-
-    # validation of inputs
-    if tid == "" or tname == "" or loaner == "" or loanee=="" or amount=="":
-        msg.showerror(title="Error", message="Error: Missing Field/s")
-    elif not tid.isnumeric():
-        msg.showerror(title="Error", message="Error: Transaction ID should only contain numerals")
-    elif tid in tids:  
-        msg.showerror(title="Error", message="Error: Transaction ID is already taken")
-    elif len(tid) > 5:
-        msg.showerror(title="Error", message="Error: Length of Transaction ID should be less than 6")
-    elif not input3.get() in lids:
-        msg.showerror(title="Error", message="Error: Loaner/Loanee ID does not exist")        
-    elif not(len(input3.get()) == 5 or len(input3.get()) == 4):
-        msg.showerror(title="Error", message="Error: Length of Loaner/Loanee ID should be 4 or 5")
-    elif len(tname)>20:
-        msg.showerror(title="Error", message="Error: Length of Transaction Name should be less than 21")  
-    elif not amount.isnumeric():
-        msg.showerror(title="Error", message="Error: Amount should only contain numerals") 
-    elif len(amount)>6:  
-        msg.showerror(title="Error", message="Error: Amount should be less than 1000000")
-    else:
+    if add==None:
+        type = None
         loaner = str(loaner)
         curr = dt.datetime.now()
         tdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
@@ -322,9 +260,74 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         
         cursor.execute(sql_statement)
         mariadb_connection.commit()
-        add.destroy()
-        msg.showinfo("Transaction Added", "Transaction has been added successfully")
         defaultTransactionDisplay()
+    else:
+        type = input3.get()
+
+        if (len(input3.get())==5):
+            if (borlend=="Borrow"):
+                uid = 11111
+            else:
+                loaner = 11111
+                uid = type
+                loanee = uid            
+        elif (len(input3.get())==4):
+            if (borlend=="Borrow"):
+                uid = 11111
+            else:
+                loaner = 11111
+                uid = type
+                loanee = uid
+    
+        # getting all the transaction ids
+        cursor.execute("SELECT transaction_id FROM transaction")
+        tids = [str(x[0]) for x in cursor.fetchall()]
+
+        # getting all the friend and group ids
+        cursor.execute("SELECT user_id FROM user WHERE user_id != 11111")
+        lids = [str(x[0]) for x in cursor.fetchall()]
+        cursor.execute("SELECT group_id FROM `group`")
+        lids.extend([str(x[0]) for x in cursor.fetchall()])
+
+        # validation of inputs
+        if tid == "" or tname == "" or loaner == "" or loanee=="" or amount=="":
+            msg.showerror(title="Error", message="Error: Missing Field/s")
+        elif not tid.isnumeric():
+            msg.showerror(title="Error", message="Error: Transaction ID should only contain numerals")
+        elif tid in tids:  
+            msg.showerror(title="Error", message="Error: Transaction ID is already taken")
+        elif len(tid) > 5:
+            msg.showerror(title="Error", message="Error: Length of Transaction ID should be less than 6")
+        elif not input3.get() in lids:
+            msg.showerror(title="Error", message="Error: Loaner/Loanee ID does not exist")        
+        elif not(len(input3.get()) == 5 or len(input3.get()) == 4):
+            msg.showerror(title="Error", message="Error: Length of Loaner/Loanee ID should be 4 or 5")
+        elif len(tname)>20:
+            msg.showerror(title="Error", message="Error: Length of Transaction Name should be less than 21")  
+        elif not amount.isnumeric():
+            msg.showerror(title="Error", message="Error: Amount should only contain numerals") 
+        elif len(amount)>6:  
+            msg.showerror(title="Error", message="Error: Amount should be less than 1000000")
+        else:
+            loaner = str(loaner)
+            curr = dt.datetime.now()
+            tdate = str(curr.month) + "/" + str(curr.day) + "/" + str(curr.year)
+            if (pdate!="NULL"):
+                if (gid != "NULL"):
+                    sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), "+ gid + ", " + "NULL)"
+                else:
+                    sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "str_to_date('"+ pdate +"','%m/%d/%Y'), NULL, " + uid + ")"
+            else:
+                if (gid != "NULL"):
+                    sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, "+ gid + ", " + "NULL" + ")"
+                else:
+                    sql_statement = "INSERT INTO transaction VALUES("+tid+", '"+ tname +"', "+ loaner +", "+ loanee +", "+ amount +", str_to_date('"+ tdate +"', '%m/%d/%Y'), " + "NULL, NULL, " + str(uid) + ")"
+            
+            cursor.execute(sql_statement)
+            mariadb_connection.commit()
+            add.destroy()
+            msg.showinfo("Transaction Added", "Transaction has been added successfully")
+            defaultTransactionDisplay()
 
 
 
@@ -484,49 +487,77 @@ def edit_transaction(id):
         msg.showerror(title="Error", message="Error: Loanee ID does not exist")
     elif validateDate(tdateInput.get()):
         msg.showerror(title="Error", message="Error: Incorrect data format, should be YYYY-MM-DD")
+    elif not(loaneeInput.get()=="11111" or loanerInput.get()=="11111"):
+        msg.showerror(title="Error", message="Error: Loaner ID or Loanee ID should be 11111")
     else:  
         # get transaction info
         cursor.execute("SELECT * FROM transaction WHERE transaction_id="+id)
         curtrans = cursor.fetchone()
+        tid = str(curtrans[0])
         amt = str(curtrans[4])
         loaner = str(curtrans[2])
         loanee = str(curtrans[3])
 
         # edit loaner and loanee balance
+    
+        if loanee == "11111":
+            borlend = "Borrow"
+            type = loanerInput.get()
+            if len(loaner) == 5:
+                gid = "NULL"
+                uid = loanerInput.get()
+            else:
+                gid = loanerInput.get()
+                uid = "NULL"
+            
+        elif loaner == "11111":
+            type = loaneeInput.get()
+            borlend = "Lend"
+            if len(loanee) == 5:
+                gid = "NULL"
+                uid = loaneeInput.get()
+            else:
+                gid = loaneeInput.get()
+                uid = "NULL"
 
-        # checks if loaner is a user or a group
-        if len(loanerInput.get())==5:
-            cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanerInput.get())
-        elif len(loanerInput.get())==4:
-            cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanerInput.get())
 
-            # update user through group
+        # settleTransaction(id)
+        deleteTransaction(id, "Update")
+        add_transaction(tid, tnameInput.get(), loaner, loanee, amt, "NULL", gid, uid, None, borlend, type)
+
+        # # checks if loaner is a user or a group
+        # if len(loanerInput.get())==5:
+        #     cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanerInput.get())
+        # elif len(loanerInput.get())==4:
+        #     cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanerInput.get())
+
+        #     # update user through group
         
-        # checks if original transaction had a user or a group
-        if len(loaner)==5:
-            cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaner)
-        elif len(loaner)==4:
-            cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaner)
+        # # checks if original transaction had a user or a group
+        # if len(loaner)==5:
+        #     cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaner)
+        # elif len(loaner)==4:
+        #     cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaner)
 
-            # update user through group
+        #     # update user through group
 
         
-        # checks if loanee is a user or a group
-        if len(loaneeInput.get())==5:
-            cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaneeInput.get())
-        elif len(loaneeInput.get())==4:
-            cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaneeInput.get())
+        # # checks if loanee is a user or a group
+        # if len(loaneeInput.get())==5:
+        #     cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaneeInput.get())
+        # elif len(loaneeInput.get())==4:
+        #     cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaneeInput.get())
 
-            # update user through group
+        #     # update user through group
 
 
-        # checks if original transaction had a user or a group
-        if len(loanee)==5:
-            cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanee)
-        elif len(loanee)==4:
-            cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanee)
+        # # checks if original transaction had a user or a group
+        # if len(loanee)==5:
+        #     cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanee)
+        # elif len(loanee)==4:
+        #     cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanee)
 
-            # update user through group
+        #     # update user through group
 
 
         #update transaction info using this query
@@ -603,7 +634,7 @@ def update_transaction_scrollable_frame(result):
             st2 = "normal"
         
         customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=st1, command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=st1, command=lambda d= id_reference :deleteTransaction(d, "")).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
         customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", state=st2, command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
     
         for data in transaction:
@@ -642,12 +673,13 @@ def defaultTransactionDisplay():
     result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
 
-def deleteTransaction(id):
+def deleteTransaction(id, type):
     query = "DELETE FROM transaction WHERE transaction_id = %s"
     toDel = (id, )
     cursor.execute(query, toDel)
     mariadb_connection.commit()
-    msg.showinfo("Transaction Deleted", "Transaction has been deleted successfully")
+    if type != "Update":
+        msg.showinfo("Transaction Deleted", "Transaction has been deleted successfully")
     defaultTransactionDisplay()
 
 def displayByMonth(month):
