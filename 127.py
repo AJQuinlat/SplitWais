@@ -496,12 +496,17 @@ def edit_transaction(id):
             cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanerInput.get())
         elif len(loanerInput.get())==4:
             cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanerInput.get())
+
+            # update user through group
         
         # checks if original transaction had a user or a group
         if len(loaner)==5:
             cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaner)
         elif len(loaner)==4:
             cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaner)
+
+            # update user through group
+
         
         # checks if loanee is a user or a group
         if len(loaneeInput.get())==5:
@@ -509,11 +514,16 @@ def edit_transaction(id):
         elif len(loaneeInput.get())==4:
             cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaneeInput.get())
 
+            # update user through group
+
+
         # checks if original transaction had a user or a group
         if len(loanee)==5:
             cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanee)
         elif len(loanee)==4:
             cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanee)
+
+            # update user through group
 
 
         #update transaction info using this query
@@ -525,6 +535,7 @@ def edit_transaction(id):
         msg.showinfo("Transaction Edited", "Transaction has been edited successfully")
 
         # redisplay transactions, users, and groups
+        displayBal()
         defaultTransactionDisplay()
         defaultDisplay()
         defaultGroupDisplay()
