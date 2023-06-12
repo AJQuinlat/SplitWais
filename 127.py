@@ -284,6 +284,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             if (borlend=="Borrow"):
                 uid = 11111
             else:
+                gid = input3.get()
                 loaner = 11111
                 uid = type
                 loanee = uid
