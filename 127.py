@@ -123,7 +123,7 @@ cursor.execute('''
 ''')
 mariadb_connection.commit()
 
-### FEATURES ------------------------------------------------------------------------
+### FUNCTIONS ------------------------------------------------------------------------
 # add user function
 def add_user(user_id, fname, mname, lname):
 
@@ -174,12 +174,6 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid):
     mariadb_connection.commit()
     
 
-# delete user by id
-def del_user(uid):
-    sqlstatement = "DELETE FROM user WHERE user_id = " + uid
-    cursor.execute(sqlstatement)
-    mariadb_connection.commit()
-
 # delete transaction by id
 def del_transaction(tid):
     sqlstatement = "DELETE FROM transaction WHERE transaction_id = " + tid
@@ -190,10 +184,6 @@ def del_transaction(tid):
 def clear_transaction():
     cursor.execute("DELETE FROM transaction WHERE payment_date IS NOT NULL;")
     mariadb_connection.commit()
-
-# delete group by id
-def del_group(gid):
-    sqlstatement = "DELETE FROM `group` WHERE group_id = " + gid
 
 # search a transaction by id
 def search_transaction_id(tid):
@@ -208,46 +198,6 @@ def search_transaction_name(tname):
     result = cursor.execute(query,)
     result = cursor.fetchall()
     update_transaction_scrollable_frame(result)
-
-# search a user by id
-def search_user_id(uid):
-    sqlstatement = "SELECT * FROM user WHERE user_id=" + uid
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-# search a user by name
-def search_user_name(uname):
-    sqlstatement = "SELECT * FROM user WHERE CONCAT(first_name, middle_name, last_name) LIKE '%" + uname + "%'"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-# search a group by id
-def search_grp_id(gid):
-    sqlstatement = "SELECT * FROM `group` WHERE group_id=" + gid
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-# search a group by name
-def search_grp_name(gname):
-    sqlstatement = "SELECT * FROM `group` WHERE group_name LIKE '%" + gname + "%'"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-
-
-
-##### REPORTS TO BE GENERATED
-
-
-# view expenses from a certain month
-def view_month(month):
-    sqlstatement = "SELECT * FROM transaction WHERE MONTH(transaction_date) = " + month
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
 
 # view all expenses made with a friend
 def search_transaction_friend(fid):
@@ -272,35 +222,6 @@ def curr_balance():
     sqlstatement = "select balance from USER where user_id = 11111"
     cursor.execute(sqlstatement)
     return(cursor.fetchone()[0])
-
-# view all friends with outstanding balance;
-def view_friend_outbalance():
-    sqlstatement = "select * from USER where Balance > 0 and user_id != 11111"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-# view_friend_outbalance()
-
-# view all groups
-def view_groups():
-    sqlstatement = "SELECT * FROM `group`"
-    cursor.execute(sqlstatement)
-    
-    lst = [("Group ID", "Group Name", "Number of Members", "Balance")] + cursor.fetchall()
-    table(lst, "Groups")
-
-    for x in cursor:
-        print(x)
-
-    
-
-def view_group_outbalance():
-    sqlstatement = "SELECT * FROM `group` WHERE balance > 0"
-    cursor.execute(sqlstatement)
-    for x in cursor:
-        print(x)
-# view_group_outbalance()
-
 
 def add1():
     add = customtkinter.CTkToplevel()
@@ -398,6 +319,7 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
         cursor.execute(sql_statement)
         mariadb_connection.commit()
         add.destroy()
+        msg.showinfo("Transaction Added", "Transaction has been added successfully")
         defaultTransactionDisplay()
 
 
@@ -410,6 +332,15 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             else:
                 upid = "group_id"
                 tbl = "`group`"
+
+                # get all the users from a group
+                cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loaner)
+                gusers = [x[0] for x in cursor.fetchall()]
+                # update user balance from group transaction
+                grpamt=str(float(amount)/float(len(gusers)))
+                for user in gusers:
+                    cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
+
             cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loaner)
@@ -421,6 +352,15 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             else:
                 upid = "group_id"
                 tbl = "`group`"
+
+                # get all the users from a group
+                cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loanee)
+                gusers = [x[0] for x in cursor.fetchall()]
+                # update user balance from group transaction
+                grpamt=str(float(amount)/float(len(gusers)))
+                for user in gusers:
+                    cursor.execute("UPDATE user SET balance=balance+"+grpamt+" where user_id="+str(user))
+
             cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
@@ -540,15 +480,52 @@ def edit_transaction(id):
     elif validateDate(tdateInput.get()):
         msg.showerror(title="Error", message="Error: Incorrect data format, should be YYYY-MM-DD")
     else:  
+        # get transaction info
+        cursor.execute("SELECT * FROM transaction WHERE transaction_id="+id)
+        curtrans = cursor.fetchone()
+        amt = str(curtrans[4])
+        loaner = str(curtrans[2])
+        loanee = str(curtrans[3])
+
+        # edit loaner and loanee balance
+
+        # checks if loaner is a user or a group
+        if len(loanerInput.get())==5:
+            cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanerInput.get())
+        elif len(loanerInput.get())==4:
+            cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanerInput.get())
+        
+        # checks if original transaction had a user or a group
+        if len(loaner)==5:
+            cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaner)
+        elif len(loaner)==4:
+            cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaner)
+        
+        # checks if loanee is a user or a group
+        if len(loaneeInput.get())==5:
+            cursor.execute("UPDATE user SET balance=balance+"+amt+" where user_id="+loaneeInput.get())
+        elif len(loaneeInput.get())==4:
+            cursor.execute("UPDATE `group` SET balance=balance+"+amt+" where group_id="+loaneeInput.get())
+
+        # checks if original transaction had a user or a group
+        if len(loanee)==5:
+            cursor.execute("UPDATE user SET balance=balance-"+amt+" where user_id="+loanee)
+        elif len(loanee)==4:
+            cursor.execute("UPDATE `group` SET balance=balance-"+amt+" where group_id="+loanee)
+
+
         #update transaction info using this query
         query = "UPDATE transaction SET transaction_name = %s, loaner = %s, loanee = %s, transaction_date = %s WHERE transaction_id = %s"
         inputs = (tnameInput.get(), loanerInput.get(), loaneeInput.get(), tdateInput.get(), id)
         cursor.execute(query, inputs)
         mariadb_connection.commit()
+
+        msg.showinfo("Transaction Edited", "Transaction has been edited successfully")
+
+        # redisplay transactions, users, and groups
         defaultTransactionDisplay()
-
-        # edit loaner and loanee balance
-
+        defaultDisplay()
+        defaultGroupDisplay()
 
 def editTransactionNow(id, index):
     edit = customtkinter.CTkToplevel()
@@ -654,6 +631,7 @@ def deleteTransaction(id):
     toDel = (id, )
     cursor.execute(query, toDel)
     mariadb_connection.commit()
+    msg.showinfo("Transaction Deleted", "Transaction has been deleted successfully")
     defaultTransactionDisplay()
 
 def displayByMonth(month):
@@ -720,6 +698,15 @@ def settleTransaction(id):
         else:
             upid = "group_id"
             tbl = "`group`"
+
+            # get all the users from a group
+            cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loaner)
+            gusers = [x[0] for x in cursor.fetchall()]
+            # update user balance from group transaction
+            grpamt=str(float(amount)/float(len(gusers)))
+            for user in gusers:
+                cursor.execute("UPDATE user SET balance=balance+"+grpamt+" where user_id="+str(user))
+
         cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loaner)
@@ -731,16 +718,28 @@ def settleTransaction(id):
         else:
             upid = "group_id"
             tbl = "`group`"
-        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
+
+            # get all the users from a group
+            cursor.execute("SELECT user_id FROM has NATURAL JOIN `group` WHERE group_id="+loanee)
+            gusers = [x[0] for x in cursor.fetchall()]
+            # update user balance from group transaction
+            grpamt=str(float(amount)/float(len(gusers)))
+            for user in gusers:
+                cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
+
+        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loanee)
         mariadb_connection.commit()
     displayBal()
+    defaultDisplay()
+    defaultGroupDisplay()
 
-
-    # update balance of users in the group
-
-
+def showUnsettled():
+    query = "SELECT * FROM transaction WHERE payment_date IS NULL"
+    result = cursor.execute(query,)
+    result = cursor.fetchall()
+    update_transaction_scrollable_frame(result)
 
 tab1.columnconfigure(index=0, weight=1)
 tab1.columnconfigure(index=7, weight=1)
@@ -809,9 +808,11 @@ monthFilter.set("Month")
 
 
 borrow = customtkinter.CTkButton(tab1, width=75, height=30, text="     Borrow     ", corner_radius=5, command= lambda: addTransaction("Borrow"))
-borrow.grid(row=4,column=5, pady=5, padx=5)
+borrow.grid(row=4,column=4, pady=5, padx=5)
 lend = customtkinter.CTkButton(tab1, width=75, height=30, text="      Lend      ", corner_radius=5, fg_color="#4B4947", command= lambda: addTransaction("Lend"))
-lend.grid(row=4,column=6, pady=5, padx=5)
+lend.grid(row=4,column=5, pady=5, padx=5)
+unsettled = customtkinter.CTkButton(tab1, width=100, height=30, text="Show Unsettled", corner_radius=5, fg_color="#4B4947", command= showUnsettled)
+unsettled.grid(row=4,column=6, pady=5, padx=5, sticky="w")
 
 tab1.after_idle(defaultTransactionDisplay)
 
