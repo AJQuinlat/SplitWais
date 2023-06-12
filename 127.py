@@ -602,9 +602,21 @@ def update_transaction_scrollable_frame(result):
             st1 = "disabled"
             st2 = "normal"
         
-        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color="#2B2B2B", state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color="#2B2B2B", state=st1, command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
-        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color="#2B2B2B", state=st2, command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
+        #change color of disabled button
+        if st1 == "normal":
+            st1btnColor = "#2B2B2B"
+        else:
+            st1btnColor = "#565B5E"
+        
+        if st2 == "normal":
+            st2btnColor = "#2B2B2B"
+        else:
+            st2btnColor = "#565B5E"
+
+        
+        customtkinter.CTkButton(transactions, text="Settle", width=50, fg_color=st2btnColor, state=st2, command=lambda d= id_reference :settleTransaction(d)).grid(column=9, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Delete", width=50, fg_color=st1btnColor, state=st1, command=lambda d= id_reference :deleteTransaction(d)).grid(column=10, row=5+i, sticky= tk.E, padx=(0,10), pady = (30, 0))
+        customtkinter.CTkButton(transactions, text="Edit", width=50, fg_color=st2btnColor, state=st2, command=lambda  d= id_reference:editTransactionNow(d, i)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
     
         for data in transaction:
             if num < 7:
@@ -907,9 +919,12 @@ def update_scrollable_frame(result):
         id_reference = str(user[0])
         if user[1] != 0.00:
             btnstate = "disable"
+            btnColor = "#565B5E"
         else:
             btnstate = "normal"
-        customtkinter.CTkButton(users, text="Delete", width=50, fg_color="#2B2B2B", state = btnstate, command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
+            btnColor = "#2B2B2B"
+
+        customtkinter.CTkButton(users, text="Delete", width=50, fg_color= btnColor, state = btnstate, command=lambda d= id_reference :deleteUser(d)).grid(column=11, row=5+i, sticky= tk.E, padx=(70,10), pady = (30, 0))
         customtkinter.CTkButton(users, text="Edit", width=50, fg_color="#2B2B2B", command=lambda  d= id_reference:editNow(d, i)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
         for data in user:
@@ -1116,10 +1131,13 @@ def update_group_scrollable_frame(result):
         id_reference = str(group[0])
         if group[3] == 0:
             btnState = "normal"
+            btnColor = "#2B2B2B"
         else:
             btnState = "disabled"
+            btnColor = "#565B5E"
+            
         
-        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color="#2B2B2B", state=btnState, command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
+        customtkinter.CTkButton(groups, text="Delete", width=50, fg_color=btnColor, state=btnState, command=lambda g=id_reference:deleteGroup(g)).grid(column=10, row=5+i, sticky= tk.E, padx=(50,10), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Edit", width=50, fg_color="#2B2B2B", command=lambda g=id_reference:editGroupNow(g)).grid(column=11, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
         customtkinter.CTkButton(groups, text="Show members", width=50, fg_color="#2B2B2B", command=lambda g =id_reference:showMembers(g)).grid(column=12, row=5+i, sticky= tk.E, padx=(0,5), pady = (30, 0))
 
