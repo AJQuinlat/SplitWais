@@ -367,9 +367,10 @@ def add_transaction(tid, tname, loaner, loanee, amount, pdate, gid, uid, add, bo
             mariadb_connection.commit()
             cursor.execute("UPDATE "+tbl+" SET balance=balance+"+amount+" where "+upid+"="+loanee)
             mariadb_connection.commit()
+        
         displayBal()
-
-        # update balance of users in the group
+        defaultDisplay()
+        defaultGroupDisplay()
 
 def addTransaction(borlend):
     add = customtkinter.CTkToplevel()
