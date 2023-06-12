@@ -63,16 +63,16 @@ cursor.execute('''
 ### inserting initial state
 sql_statement = '''
     INSERT INTO user VALUES 
-    (11111, 500.00, 'Maria', 'Maganda', 'Makiling'),
-    (22222, 6900.00, 'Angela', 'Mercy', 'Ziegler'),
-    (33333, 8000.00, 'Gabriel', 'Reaper', 'Reyes'),
-    (44444, 4440.00, 'Jack', 'Soldier', 'Morrison'),
-    (55555, 40.00, 'Ana', 'Sup', 'Amari'),
-    (66666, 800.00, 'Fareeha', 'Pharah', 'Amari'),
-    (77777, 65000.00, 'Mei', 'Ice', 'Wall'),
-    (88888, 100.00, 'Brigitte', 'Tough', 'Lindholm'),
-    (99999, 7000.00, 'Reinhardt', 'Hammer', 'Wilhelm'),
-    (10000, 10000.00, 'Torbjorn', 'Turret', 'Lindholm');
+    (11111, 0.00, 'Maria', 'Maganda', 'Makiling'),
+    (22222, 0.00, 'Angela', 'Mercy', 'Ziegler'),
+    (33333, 0.00, 'Gabriel', 'Reaper', 'Reyes'),
+    (44444, 0.00, 'Jack', 'Soldier', 'Morrison'),
+    (55555, 0.00, 'Ana', 'Sup', 'Amari'),
+    (66666, 0.00, 'Fareeha', 'Pharah', 'Amari'),
+    (77777, 0.00, 'Mei', 'Ice', 'Wall'),
+    (88888, 0.00, 'Brigitte', 'Tough', 'Lindholm'),
+    (99999, 0.00, 'Reinhardt', 'Hammer', 'Wilhelm'),
+    (10000, 0.00, 'Torbjorn', 'Turret', 'Lindholm');
 
 '''
 cursor.execute(sql_statement)
@@ -83,23 +83,25 @@ cursor.execute('''
     insert into `group` values
     (1023, "Overwatch", 8, 0),
     (1111, "Testing", 4, 0),
-    (1024, "Talon", 2, 200.00),
+    (1024, "Talon", 2, 0.00),
     (1021, "Helix Corporation", 2, 0);
 ''')
 mariadb_connection.commit()
 
-cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
-cursor.execute('''
-    insert into `transaction` values
-    (1, 'Gun Rental', 1021, 10000, 600.00, str_to_date('10/13/2023', '%m/%d/%Y'), NULL, NULL, 10000),
-    (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
-    (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
-    (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
-    (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
-    (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
+#for backup data
 
-''')
-mariadb_connection.commit()
+# cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
+# cursor.execute('''
+#     insert into `transaction` values
+#     (1, 'Gun Rental', 1021, 10000, 600.00, str_to_date('10/13/2023', '%m/%d/%Y'), NULL, NULL, 10000),
+#     (2, 'Suit Maintenance', 44444, 11111, 1000.00, str_to_date('05/25/2023','%m/%d/%Y'), NULL, NULL, 11111),
+#     (3, 'Ice Wall Molder', 11111, 77777, 6900.00, str_to_date('04/12/2020', '%m/%d/%Y'), NULL, NULL, 77777),
+#     (4, 'Scanners', 11111, 1024, 200.00, str_to_date('01/01/2021', '%m/%d/%Y'), NULL, 1024, NULL),
+#     (5, 'Bills', 1023, 11111, 200.00, str_to_date('01/02/2023','%m/%d/%Y'), str_to_date('01/10/2023', '%m/%d/%Y'), NULL, 11111),
+#     (6, 'Utilities', 1111, 11111, 200.00, str_to_date('01/22/2023','%m/%d/%Y'), NULL, 1111, NULL); 
+
+# ''')
+# mariadb_connection.commit()
 
 cursor.execute("SET FOREIGN_KEY_CHECKS=0;")
 cursor.execute('''
@@ -741,7 +743,7 @@ def settleTransaction(id):
             for user in gusers:
                 cursor.execute("UPDATE user SET balance=balance-"+grpamt+" where user_id="+str(user))
 
-        cursor.execute("UPDATE user SET balance=balance-"+amount+" where user_id=11111")
+        cursor.execute("UPDATE user SET balance=balance+"+amount+" where user_id=11111")
         mariadb_connection.commit()
         cursor.execute("UPDATE "+tbl+" SET balance=balance-"+amount+" where "+upid+"="+loanee)
         mariadb_connection.commit()
@@ -762,12 +764,26 @@ tbalance = customtkinter.CTkLabel(tab1, text="Total Balance:", font=("Segoi UI",
 tbalance.grid(row=0, column=1, pady=(30, 5))
 
 abalance = None
+totalBalanceFromGroupsValue = None
+
+def getAllGroupBalance():
+    query = "SELECT sum(balance) FROM `group`"
+    cursor.execute(query)
+    return(cursor.fetchone()[0])
+
 def displayBal():
+
     global abalance
+    global totalBalanceFromGroupsValue
     if abalance!=None:
         abalance.destroy()
     abalance = customtkinter.CTkLabel(tab1, text="Php" + str(curr_balance()), font=("Segoi UI", 20), text_color="#31A37C")
     abalance.grid(row=0, column=2, pady=(30, 5))
+
+    if totalBalanceFromGroupsValue != None:
+        totalBalanceFromGroupsValue.destroy()
+    totalBalanceFromGroupsValue = customtkinter.CTkLabel(tab3, text="PHP. " + str(getAllGroupBalance()), font=("Segoi UI", 20), text_color="#31A37C")
+    totalBalanceFromGroupsValue.grid(row=0, column=2, pady=(30, 5))
 
 
 tab1.after_idle(displayBal)
@@ -1124,10 +1140,6 @@ def showGroupWithOutstandingBalance():
     result = cursor.fetchall()
     update_group_scrollable_frame(result)
 
-def getAllGroupBalance():
-    query = "SELECT sum(balance) FROM `group`"
-    cursor.execute(query)
-    return(cursor.fetchone()[0])
     
 # search a group by id
 def searchGroupByID(id):
@@ -1264,8 +1276,9 @@ button_font = font.Font(size=20)
 
 totalBalanceFromGroups = customtkinter.CTkLabel(tab3, text="Total balance from groups:  ", font=("Segoi UI", 20))
 totalBalanceFromGroups.grid(row=0, column=1, pady=(30, 5))
-totalBalanceFromGroupsValue = customtkinter.CTkLabel(tab3, text="PHP. " + str(getAllGroupBalance()), font=("Segoi UI", 20), text_color="#31A37C")
-totalBalanceFromGroupsValue.grid(row=0, column=2, pady=(30, 5))
+displayBal()
+# totalBalanceFromGroupsValue = customtkinter.CTkLabel(tab3, text="PHP. " + str(getAllGroupBalance()), font=("Segoi UI", 20), text_color="#31A37C")
+# totalBalanceFromGroupsValue.grid(row=0, column=2, pady=(30, 5))
 
 searchBar = customtkinter.CTkEntry(tab3, width=200, height=25, corner_radius=100, fg_color="White", border_width=0, text_color="#2B2B2B")
 searchBar.grid(row=1, column=1, pady=5, padx=5)

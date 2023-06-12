@@ -8,7 +8,7 @@
     # TRANSACTION  
         1. Search Function
             - user is allowed to search by transaction ID
-            - there is also a feature that the user can custom suearch (by transaction name, friend ID and group id)
+            - there is also a feature that the user can custom suearch (by transaction name, friend ID and group ID)
                 ** note that the result of search is only where the main user "11111" has transaction with*
         2. Show History
             - display all transaction
@@ -21,13 +21,17 @@
             - mean that the transaction is already paid
             - payment date is updated once settled
         6. Edit
-            - user can edit the transaction name, loanne and loaner (ID) and transaction date
+            - user can edit the transaction name, loanee and loaner (ID) and transaction date
         7. Borrow
             - User (11111) is set as loaner
             - automatically updates total balance
         8. Lend
             - User (11111) is set as loanee
             - automatically updates total balance
+        9. Show all unsettled
+            - displays unsettled transaction
+        10. Total Balance
+            - shows current balance of the user 11111 and updates when there is a new transaction
         
 
     # USER
@@ -63,5 +67,7 @@
             - delete is disabled when it still has balance
         7. Edit
             - User can only edit group name
+        8. Total Group Balance
+            - shows current balance of the group and updates when there is a new transaction
         
         
